@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 	import BoxIcon from '@lucide/svelte/icons/box';
 	import CopyIcon from '@lucide/svelte/icons/copy';
 	import registry from '../../registry.json';
@@ -11,22 +11,18 @@
 
 	const demos: Record<string, Snippet> = {
 		'copy-button': copyButtonDemo,
-		'icon-tile': iconTileDemo,
-		'bom-tree-grid': bomTreeGridDemo,
-		'treasury-waterfall-grid': treasuryWaterfallGridDemo
+		'icon-tile': iconTileDemo
+	};
+
+	// Blocks ship their own demo component.
+	const blockDemos: Record<string, Component> = {
+		'bom-tree-grid': BomTreeGridDemo,
+		'treasury-waterfall-grid': TreasuryWaterfallGridDemo
 	};
 </script>
 
 {#snippet copyButtonDemo()}
 	<CopyButton value="Copied from m-cn-svelte" />
-{/snippet}
-
-{#snippet bomTreeGridDemo()}
-	<BomTreeGridDemo />
-{/snippet}
-
-{#snippet treasuryWaterfallGridDemo()}
-	<TreasuryWaterfallGridDemo />
 {/snippet}
 
 {#snippet iconTileDemo()}
@@ -60,7 +56,12 @@
 					? 'overflow-x-auto'
 					: 'flex min-h-24 items-center justify-center rounded-md bg-muted/40 p-6'}
 			>
-				{@render demos[item.name]?.()}
+				{#if blockDemos[item.name]}
+					{@const Demo = blockDemos[item.name]}
+					<Demo />
+				{:else}
+					{@render demos[item.name]?.()}
+				{/if}
 			</div>
 			<div class="flex items-center gap-2">
 				<code class="min-w-0 flex-1 truncate font-mono text-xs">{installCommand(item.name)}</code>

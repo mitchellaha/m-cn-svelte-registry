@@ -103,6 +103,7 @@
 	const bom = $derived(buildBom(data));
 
 	let search = $state('');
+	const query = $derived(search.trim().toLowerCase());
 	let sorting = $state.raw<SortingState>([]);
 	let expanded = $state.raw<ExpandedState>(true);
 	let supplyFilter = $state.raw<Supply[]>([]);
@@ -145,8 +146,7 @@
 			id: 'supply',
 			header: 'Supply',
 			size: 140,
-			filterFn: (row, id, value: Supply[]) =>
-				value.length === 0 || value.includes(row.getValue<Supply>(id))
+			filterFn: (row, id, value: Supply[]) => value.includes(row.getValue<Supply>(id))
 		},
 		{ id: 'actions', header: '', size: 48, enableSorting: false, enableHiding: false }
 	];
@@ -160,17 +160,14 @@
 		getRowId: (row) => row.id,
 		getSubRows: (row) => row.children,
 		filterFromLeafRows: true,
-		// Expand state is owned here. Left on, the Svelte adapter's option sync
-		// triggers TanStack's auto reset and wipes every toggle.
-		autoResetExpanded: false,
-		globalFilterFn: (row, _id, value: string) => {
-			const q = value.trim().toLowerCase();
-			return (
-				!q ||
-				row.original.name.toLowerCase().includes(q) ||
-				row.original.number.toLowerCase().includes(q)
-			);
-		},
+		// The Svelte adapter hands table-core a fresh proxy of `data` on every
+		// option sync, which table-core reads as new data and auto resets state.
+		// All state here is owned by this component, so turn the resets off.
+		autoResetAll: false,
+		// `value` is the already trimmed, lowercased query.
+		globalFilterFn: (row, _id, value: string) =>
+			row.original.name.toLowerCase().includes(value) ||
+			row.original.number.toLowerCase().includes(value),
 		state: {
 			get sorting() {
 				return sorting;
@@ -182,29 +179,37 @@
 				return columnVisibility;
 			},
 			get globalFilter() {
-				return search;
+				return query;
 			},
 			// A search must reveal every match, so it overrides the depth toggle.
 			get expanded() {
-				return search ? true : expanded;
+				return query ? true : expanded;
 			}
 		},
 		onSortingChange: (updater) => (sorting = functionalUpdate(updater, sorting)),
-		onExpandedChange: (updater) => (expanded = functionalUpdate(updater, expanded)),
+		// Ignore toggles while search pins every row open, so clearing the search
+		// restores the expand state the user left.
+		onExpandedChange: (updater) => {
+			if (!query) expanded = functionalUpdate(updater, expanded);
+		},
 		onColumnVisibilityChange: (updater) =>
 			(columnVisibility = functionalUpdate(updater, columnVisibility))
 	});
 
+	// Depth presets change only with the data, not on every toggle.
+	const depthPresets = $derived(
+		([1, 2] as const).map((d) => [String(d), Object.keys(expandedToDepth(bom.flat, d))] as const)
+	);
+
 	const depthValue = $derived.by(() => {
 		if (expanded === true) return 'all';
 		const map = expanded;
-		const keys = Object.keys(map).filter((k) => map[k]);
-		if (keys.length === 0) return 'collapse';
-		for (const d of [1, 2]) {
-			const want = Object.keys(expandedToDepth(bom.flat, d));
-			if (want.length === keys.length && want.every((k) => keys.includes(k))) return String(d);
-		}
-		return '';
+		const open = new Set(Object.keys(map).filter((k) => map[k]));
+		if (open.size === 0) return 'collapse';
+		const preset = depthPresets.find(
+			([, ids]) => ids.length === open.size && ids.every((id) => open.has(id))
+		);
+		return preset?.[0] ?? '';
 	});
 
 	const shownOptional = $derived(
@@ -230,7 +235,8 @@
 		a.href = url;
 		a.download = `${product.replaceAll(' ', '-').toLowerCase()}-bom.csv`;
 		a.click();
-		URL.revokeObjectURL(url);
+		// Revoking in the same tick can cancel the download in some browsers.
+		setTimeout(() => URL.revokeObjectURL(url));
 	}
 
 	const RING_R = 7;
@@ -306,6 +312,7 @@
 							variant="outline"
 							size="sm"
 							aria-pressed={depthValue === value}
+							disabled={Boolean(query)}
 							class="aria-pressed:bg-muted aria-pressed:text-foreground"
 							onclick={() => setDepth(value)}
 						>
@@ -514,7 +521,7 @@
 									{:else if cell.column.id === 'extendedCost'}
 										<span class="inline-flex items-center justify-end gap-2 tabular-nums">
 											{#if r.children}
-												{@render shareRing(r.share)}
+												{@render shareRing(bom.buildCost ? r.extendedCost / bom.buildCost : 0)}
 											{/if}
 											<span class="font-medium text-foreground">{money(r.extendedCost)}</span>
 										</span>
@@ -544,7 +551,9 @@
 											</DropdownMenu.Trigger>
 											<DropdownMenu.Content align="end">
 												<DropdownMenu.Item>View part</DropdownMenu.Item>
-												<DropdownMenu.Item onSelect={() => navigator.clipboard.writeText(r.number)}>
+												<DropdownMenu.Item
+													onSelect={() => navigator.clipboard?.writeText(r.number).catch(() => {})}
+												>
 													Copy number
 												</DropdownMenu.Item>
 												<DropdownMenu.Separator />

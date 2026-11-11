@@ -90,8 +90,13 @@ export function variancePct(cell: Cell) {
 	return Math.round((Math.abs(cell.actual - cell.plan) / Math.abs(cell.plan)) * 100);
 }
 
-export function buildTreasury(data: TreasuryData, start: number, size: number, group: string) {
-	const { byId, closing, netBurn } = deriveSeries(data);
+export function buildTreasury(
+	data: TreasuryData,
+	{ byId, closing, netBurn }: ReturnType<typeof deriveSeries>,
+	start: number,
+	size: number,
+	group: string
+) {
 	const months = Array.from({ length: size }, (_, i) => start + i).filter(
 		(m) => m < data.months.length
 	);
@@ -136,7 +141,6 @@ export function buildTreasury(data: TreasuryData, start: number, size: number, g
 
 	return {
 		rows,
-		months,
 		labels: months.map((m) => data.months[m]),
 		closing: window(closing),
 		netBurn: window(netBurn)

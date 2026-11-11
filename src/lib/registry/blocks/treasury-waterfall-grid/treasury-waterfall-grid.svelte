@@ -51,6 +51,7 @@
 		SUMMARY_LABEL,
 		TABS,
 		buildTreasury,
+		deriveSeries,
 		matchesQuery,
 		money,
 		visibleLines
@@ -88,7 +89,9 @@
 		untrack(() => Object.fromEntries(data.groups.slice(0, 2).map((g) => [g.id, true])))
 	);
 
-	const treasury = $derived(buildTreasury(data, start, windowSize, group));
+	// Full-length series depend only on the data; the window and group slice them.
+	const series = $derived(deriveSeries(data));
+	const treasury = $derived(buildTreasury(data, series, start, windowSize, group));
 
 	const columns = $derived<ColumnDef<TreasuryFeatures, TreasuryRow>[]>([
 		{
@@ -96,11 +99,11 @@
 			id: 'name',
 			header: 'Line Item'
 		},
+		// Display columns: cells render from row.original by month position, and
+		// the position-based id keeps column state stable as the window slides.
 		...treasury.labels.map<ColumnDef<TreasuryFeatures, TreasuryRow>>((label, i) => ({
-			// Position-based so sliding the window does not churn column state.
 			id: `m${i}`,
-			header: label,
-			accessorFn: (row) => row.cells[i]
+			header: label
 		}))
 	]);
 
@@ -116,9 +119,10 @@
 		getSubRows: (row) => row.children,
 		// Pages count groups; a group's lines always render on its page.
 		paginateExpandedRows: false,
-		// Expand state is owned here. Left on, the Svelte adapter's option sync
-		// triggers TanStack's auto reset and wipes every toggle.
-		autoResetExpanded: false,
+		// The Svelte adapter hands table-core a fresh proxy of `data` on every
+		// option sync, which table-core reads as new data and auto resets expand
+		// and page state. Turn the resets off; the page resets explicitly below.
+		autoResetAll: false,
 		filterFromLeafRows: true,
 		globalFilterFn: (row, _id, value: string) => matchesQuery(row.original.name, value),
 		initialState: { pagination: { pageIndex: 0, pageSize: 5 } },
@@ -137,6 +141,13 @@
 			if (query) return;
 			expanded = typeof updater === 'function' ? updater(expanded) : updater;
 		}
+	});
+
+	// A new search or group filter starts from the first page.
+	$effect(() => {
+		void query;
+		void group;
+		untrack(() => table.setPageIndex(0));
 	});
 
 	const lineCount = $derived(
@@ -176,13 +187,7 @@
 	{#if cell}
 		<span class="flex flex-col items-end leading-tight">
 			<span class="text-[11px] font-normal whitespace-nowrap text-muted-foreground">{label}</span>
-			{#if tab === 'variance'}
-				<VarianceCell {cell} />
-			{:else}
-				<span class="font-semibold text-foreground tabular-nums">
-					{money(tab === 'plan' ? cell.plan : cell.actual)}
-				</span>
-			{/if}
+			{@render amount(cell, true)}
 		</span>
 	{/if}
 {/snippet}
@@ -318,7 +323,10 @@
 						<Table.Body>
 							{#each table.getRowModel().rows as row (row.id)}
 								{@const original = row.original}
-								<Table.Row>
+								<!-- The expand button's aria-expanded would trip the row's open-row shading. -->
+								<Table.Row
+									class="has-aria-expanded:bg-transparent has-aria-expanded:hover:bg-muted/50"
+								>
 									{#each row.getVisibleCells() as cell (cell.id)}
 										{#if cell.column.id === 'name'}
 											{@const Icon = ICONS[original.icon]}

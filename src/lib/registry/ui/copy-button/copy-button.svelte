@@ -36,7 +36,11 @@
 	{size}
 	{variant}
 	aria-label={copied ? 'Copied' : 'Copy'}
-	onclick={() => navigator.clipboard.writeText(value).then(() => (copied = true))}
+	onclick={() =>
+		navigator.clipboard
+			?.writeText(value)
+			.then(() => (copied = true))
+			.catch(() => {})}
 	{...restProps}
 >
 	{#if copied}

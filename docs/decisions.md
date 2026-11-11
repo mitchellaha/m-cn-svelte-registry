@@ -24,7 +24,8 @@ One ruling per line, with the reason. Change the ruling here before changing the
 
 ## Ports
 
-- **2026-11-11 Tables that own expand state set `autoResetExpanded: false`.** The Svelte adapter re-syncs options on every state change, which fires TanStack's expanded auto reset and wipes each toggle straight after it lands (Expand All and the depth buttons did nothing). Found in browser review; both agent ports had passed typecheck and headless table tests.
+- **2026-11-11 Every `createTable` sets `autoResetAll: false`.** `@tanstack/svelte-table` 9.3 keeps options in a deep `$state`, so each option sync hands table-core a fresh proxy of `data`. The core row model memo sees new data and fires every auto reset: expand toggles were wiped straight after they landed, and the page index jumped back to 1. Blocks own their state, so they reset what they mean to reset explicitly (treasury: page index on search or group change). Found in browser review; both agent ports had passed typecheck and headless tests. Revisit if the adapter switches its options store to `$state.raw`.
+- **2026-11-11 Search locks expand state in both grids.** While a query pins every row open, expand toggles are ignored and the depth / Expand All controls are disabled, so clearing the search restores the user's view.
 
 - **2026-11-11 `copy-button`: a caller's `onclick` replaces the copy action.** Same as the React version. Typed `Omit<ButtonProps, 'href'>`.
 - **2026-11-11 `icon-tile` uses `tv`, not `cva`.** Matches shadcn-svelte's own components.

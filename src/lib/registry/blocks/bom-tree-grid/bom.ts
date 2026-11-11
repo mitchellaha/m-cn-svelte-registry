@@ -1,12 +1,5 @@
 import type { BomNode, BomRow, FlatBomRow, Supply } from './types.js';
 
-export const SUPPLY_RANK: Record<Supply, number> = {
-	stocked: 0,
-	'single-source': 1,
-	'long-lead': 2,
-	shortage: 3
-};
-
 export const SUPPLY_LABEL: Record<Supply, string> = {
 	stocked: 'Stocked',
 	'single-source': 'Single source',
@@ -14,6 +7,7 @@ export const SUPPLY_LABEL: Record<Supply, string> = {
 	shortage: 'Shortage'
 };
 
+/** Best to worst; the index is the rank a parent rolls up by. */
 export const ALL_SUPPLY = Object.keys(SUPPLY_LABEL) as Supply[];
 
 /** Semantic badge tones, layered on the shadcn-svelte badge. */
@@ -43,31 +37,21 @@ function rollUp(node: BomNode): BomRow {
 			children: undefined,
 			extendedCost: round2(node.qty * (node.unitCost ?? 0)),
 			leadTimeDays: node.leadTimeDays ?? 0,
-			supply: node.supply ?? 'stocked',
-			share: 0
+			supply: node.supply ?? 'stocked'
 		};
 	}
 	const children = node.children.map(rollUp);
 	return {
 		...node,
 		unitCost: undefined,
-		share: 0,
 		extendedCost: round2(node.qty * children.reduce((s, c) => s + c.extendedCost, 0)),
 		leadTimeDays: Math.max(...children.map((c) => c.leadTimeDays)),
 		supply: children.reduce<Supply>(
-			(worst, c) => (SUPPLY_RANK[c.supply] > SUPPLY_RANK[worst] ? c.supply : worst),
+			(worst, c) => (ALL_SUPPLY.indexOf(c.supply) > ALL_SUPPLY.indexOf(worst) ? c.supply : worst),
 			'stocked'
 		),
 		children
 	};
-}
-
-function withShare(rows: BomRow[], total: number): BomRow[] {
-	return rows.map((r) => ({
-		...r,
-		share: total ? r.extendedCost / total : 0,
-		children: r.children ? withShare(r.children, total) : undefined
-	}));
 }
 
 function flatten(rows: BomRow[], depth = 0): FlatBomRow[] {
@@ -75,9 +59,8 @@ function flatten(rows: BomRow[], depth = 0): FlatBomRow[] {
 }
 
 export function buildBom(nodes: BomNode[]) {
-	const rolled = nodes.map(rollUp);
-	const buildCost = round2(rolled.reduce((s, r) => s + r.extendedCost, 0));
-	const rows = withShare(rolled, buildCost);
+	const rows = nodes.map(rollUp);
+	const buildCost = round2(rows.reduce((s, r) => s + r.extendedCost, 0));
 	const flat = flatten(rows);
 	return {
 		rows,
@@ -96,8 +79,9 @@ export function expandedToDepth(flat: FlatBomRow[], depth: number): Record<strin
 	);
 }
 
-export const money = (n: number) =>
-	n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+const moneyFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+export const money = (n: number) => moneyFormat.format(n);
 
 export function toCsv(flat: FlatBomRow[]) {
 	const head = [

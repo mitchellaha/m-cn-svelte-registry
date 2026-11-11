@@ -41,7 +41,6 @@ export interface BomRow {
 	extendedCost: number;
 	leadTimeDays: number;
 	supply: Supply;
-	share: number;
 	children?: BomRow[];
 }
 
