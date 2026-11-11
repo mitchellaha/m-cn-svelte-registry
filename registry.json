@@ -2,6 +2,9 @@
 	"$schema": "https://shadcn-svelte.com/schema/registry.json",
 	"name": "m-cn-svelte",
 	"homepage": "https://github.com/mitchellaha/m-cn-svelte-registry",
+	"aliases": {
+		"components": "$lib/registry/blocks"
+	},
 	"items": [
 		{
 			"name": "copy-button",
@@ -161,6 +164,187 @@
 					"path": "src/lib/registry/blocks/treasury-waterfall-grid/grid-pagination.svelte",
 					"type": "registry:component",
 					"target": "treasury-waterfall-grid/grid-pagination.svelte"
+				}
+			]
+		},
+		{
+			"name": "status-badge",
+			"type": "registry:ui",
+			"title": "Status Badge",
+			"description": "A badge with four status tones: ok, warn, crit and idle. Adds the matching colour tokens (light and dark) to your stylesheet.",
+			"dependencies": ["tailwind-variants"],
+			"devDependencies": [],
+			"registryDependencies": ["badge"],
+			"cssVars": {
+				"theme": {
+					"color-ok": "var(--ok)",
+					"color-ok-bg": "var(--ok-bg)",
+					"color-warn": "var(--warn)",
+					"color-warn-bg": "var(--warn-bg)",
+					"color-crit": "var(--crit)",
+					"color-crit-bg": "var(--crit-bg)",
+					"color-idle": "var(--idle)",
+					"color-idle-bg": "var(--idle-bg)"
+				},
+				"light": {
+					"ok": "oklch(0.5 0.11 162)",
+					"ok-bg": "oklch(0.95 0.04 162)",
+					"warn": "oklch(0.54 0.12 62)",
+					"warn-bg": "oklch(0.95 0.05 78)",
+					"crit": "oklch(0.52 0.18 27)",
+					"crit-bg": "oklch(0.95 0.03 25)",
+					"idle": "oklch(0.5 0.015 250)",
+					"idle-bg": "oklch(0.94 0.006 250)"
+				},
+				"dark": {
+					"ok": "oklch(0.8 0.12 162)",
+					"ok-bg": "oklch(0.29 0.05 162)",
+					"warn": "oklch(0.83 0.12 72)",
+					"warn-bg": "oklch(0.3 0.05 68)",
+					"crit": "oklch(0.77 0.13 25)",
+					"crit-bg": "oklch(0.3 0.06 25)",
+					"idle": "oklch(0.73 0.012 250)",
+					"idle-bg": "oklch(0.29 0.006 250)"
+				}
+			},
+			"files": [
+				{
+					"path": "src/lib/registry/ui/status-badge/status-badge.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/status-badge/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
+			"name": "scope-switcher",
+			"type": "registry:block",
+			"title": "Scope Switcher",
+			"description": "Header chip that sets which projects the app shows. Opens a two-pane popover: pick all items or a group on the left, tick items in a searchable list on the right. Empty selection means everything. Ships with a demo data file you can delete.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["button", "command", "popover"],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/scope-switcher/scope-switcher.svelte",
+					"type": "registry:component",
+					"target": "scope-switcher/scope-switcher.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/scope-switcher/scope-switcher-demo.svelte",
+					"type": "registry:component",
+					"target": "scope-switcher/scope-switcher-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/scope-switcher/types.ts",
+					"type": "registry:component",
+					"target": "scope-switcher/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/scope-switcher/demo-data.ts",
+					"type": "registry:component",
+					"target": "scope-switcher/demo-data.ts"
+				}
+			]
+		},
+		{
+			"name": "feature-menu",
+			"type": "registry:block",
+			"title": "Feature Menu",
+			"description": "Breadcrumb mega-menu: search, a modules column, screen cards with icon and description, and a pinned column with pin and unpin. Works in any Svelte app: pass an href builder or an onNavigate callback. Ships with a demo data file you can delete.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["input-group", "popover", "scroll-area"],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/feature-menu/feature-menu.svelte",
+					"type": "registry:component",
+					"target": "feature-menu/feature-menu.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/feature-menu/feature-menu-demo.svelte",
+					"type": "registry:component",
+					"target": "feature-menu/feature-menu-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/feature-menu/types.ts",
+					"type": "registry:component",
+					"target": "feature-menu/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/feature-menu/demo-data.ts",
+					"type": "registry:component",
+					"target": "feature-menu/demo-data.ts"
+				}
+			]
+		},
+		{
+			"name": "command-palette",
+			"type": "registry:block",
+			"title": "Command Palette",
+			"description": "Cmd/Ctrl+K command dialog over modules, screens and an actions group. Registers its own shortcut and removes it on destroy. Ships with a demo data file you can delete.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["button", "command", "kbd"],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/command-palette/command-palette.svelte",
+					"type": "registry:component",
+					"target": "command-palette/command-palette.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/command-palette/command-palette-demo.svelte",
+					"type": "registry:component",
+					"target": "command-palette/command-palette-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/command-palette/types.ts",
+					"type": "registry:component",
+					"target": "command-palette/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/command-palette/demo-data.ts",
+					"type": "registry:component",
+					"target": "command-palette/demo-data.ts"
+				}
+			]
+		},
+		{
+			"name": "app-header",
+			"type": "registry:block",
+			"title": "App Header",
+			"description": "Top bar that composes the scope switcher, a module breadcrumb with the feature menu, a command palette trigger and a user menu. Snippets for the brand, extra buttons and extra user menu items. Ships with a demo data file you can delete.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"avatar",
+				"breadcrumb",
+				"button",
+				"dropdown-menu",
+				"kbd",
+				"separator",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/scope-switcher.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/feature-menu.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/command-palette.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/status-badge.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/app-header/app-header.svelte",
+					"type": "registry:component",
+					"target": "app-header/app-header.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-header/app-header-demo.svelte",
+					"type": "registry:component",
+					"target": "app-header/app-header-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-header/demo-data.ts",
+					"type": "registry:component",
+					"target": "app-header/demo-data.ts"
 				}
 			]
 		}
