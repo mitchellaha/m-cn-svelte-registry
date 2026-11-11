@@ -7,6 +7,7 @@ import ScopeSwitcherDemo from '$lib/registry/blocks/scope-switcher/scope-switche
 import TreasuryWaterfallGridDemo from '$lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte';
 import CopyButtonDemo from './copy-button-demo.svelte';
 import IconTileDemo from './icon-tile-demo.svelte';
+import StarRatingDemo from './star-rating-demo.svelte';
 import StatusBadgeDemo from './status-badge-demo.svelte';
 
 export type Demo = {
@@ -22,6 +23,7 @@ export const demos: Record<string, Demo> = {
 	'copy-button': { component: CopyButtonDemo, height: 240, padded: false },
 	'icon-tile': { component: IconTileDemo, height: 240, padded: false },
 	'status-badge': { component: StatusBadgeDemo, height: 160, padded: false },
+	'star-rating': { component: StarRatingDemo, height: 200, padded: false },
 	'bom-tree-grid': { component: BomTreeGridDemo, height: 760, padded: true },
 	'treasury-waterfall-grid': { component: TreasuryWaterfallGridDemo, height: 760, padded: true },
 	'scope-switcher': { component: ScopeSwitcherDemo, height: 600, padded: true },

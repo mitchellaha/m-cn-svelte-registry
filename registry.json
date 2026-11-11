@@ -219,6 +219,33 @@
 			]
 		},
 		{
+			"name": "star-rating",
+			"type": "registry:ui",
+			"title": "Star Rating",
+			"description": "Star rating input on Bits UI's RatingGroup, with half stars, readonly and disabled states. From shadcn-svelte-extras (MIT, Aidan Bleser).",
+			"dependencies": ["@lucide/svelte", "bits-ui"],
+			"devDependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/star-rating/index.ts",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/star-rating/star-rating.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/star-rating/star-rating-star.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/star-rating/types.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
 			"name": "scope-switcher",
 			"type": "registry:block",
 			"title": "Scope Switcher",

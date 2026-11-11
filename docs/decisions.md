@@ -43,3 +43,4 @@ One ruling per line, with the reason. Change the ruling here before changing the
 ## Preview site
 
 - **2026-11-11 Phone and Tablet previews are iframes of a standalone route.** Tailwind breakpoints follow the viewport, so a narrow div cannot show a component's phone layout; `/preview/[name]/` renders one demo alone and the main page frames it at 390 or 768px. Desktop stays inline. Iframes load only when picked.
+- **2026-11-11 `star-rating` is vendored from shadcn-svelte-extras with its MIT notice.** Upstream's registry item depends on `./utils.json`, its own `utils` file, which would overwrite the consumer's `utils.ts` on install. The vendored copy changes only import paths to this registry's `#lib/utils.js`; the full licence text sits in `index.ts`. Pull upstream changes by diffing against https://shadcn-svelte-extras.com/r/star-rating.json.
