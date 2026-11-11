@@ -327,8 +327,7 @@
 				"separator",
 				"https://mitchellaha.github.io/m-cn-svelte-registry/r/scope-switcher.json",
 				"https://mitchellaha.github.io/m-cn-svelte-registry/r/feature-menu.json",
-				"https://mitchellaha.github.io/m-cn-svelte-registry/r/command-palette.json",
-				"https://mitchellaha.github.io/m-cn-svelte-registry/r/status-badge.json"
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/command-palette.json"
 			],
 			"files": [
 				{

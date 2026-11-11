@@ -13,7 +13,7 @@ export type Demo = {
 	component: Component;
 	/** Iframe height in Phone and Tablet modes. Popovers and dialogs must fit inside it open. */
 	height: number;
-	/** Pads the standalone route; blocks that draw their own app shell sit flush. */
+	/** Pads the standalone route. Demos that center themselves in a muted box sit flush. */
 	padded: boolean;
 };
 
@@ -21,13 +21,13 @@ export type Demo = {
 export const demos: Record<string, Demo> = {
 	'copy-button': { component: CopyButtonDemo, height: 240, padded: false },
 	'icon-tile': { component: IconTileDemo, height: 240, padded: false },
-	'status-badge': { component: StatusBadgeDemo, height: 420, padded: false },
+	'status-badge': { component: StatusBadgeDemo, height: 160, padded: false },
 	'bom-tree-grid': { component: BomTreeGridDemo, height: 760, padded: true },
 	'treasury-waterfall-grid': { component: TreasuryWaterfallGridDemo, height: 760, padded: true },
-	'scope-switcher': { component: ScopeSwitcherDemo, height: 600, padded: false },
-	'feature-menu': { component: FeatureMenuDemo, height: 680, padded: false },
-	'command-palette': { component: CommandPaletteDemo, height: 560, padded: false },
-	'app-header': { component: AppHeaderDemo, height: 720, padded: true }
+	'scope-switcher': { component: ScopeSwitcherDemo, height: 600, padded: true },
+	'feature-menu': { component: FeatureMenuDemo, height: 640, padded: true },
+	'command-palette': { component: CommandPaletteDemo, height: 540, padded: true },
+	'app-header': { component: AppHeaderDemo, height: 640, padded: true }
 };
 
 export type Viewport = 'phone' | 'tablet' | 'desktop';

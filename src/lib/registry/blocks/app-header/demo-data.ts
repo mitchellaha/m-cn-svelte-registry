@@ -19,7 +19,6 @@ import UserPlusIcon from '@lucide/svelte/icons/user-plus';
 import type { CommandPaletteAction } from '$lib/registry/blocks/command-palette/types.js';
 import type { FeatureModule } from '$lib/registry/blocks/feature-menu/types.js';
 import type { ScopeGroup, ScopeItem } from '$lib/registry/blocks/scope-switcher/types.js';
-import type { StatusBadgeTone } from '$lib/registry/ui/status-badge/index.js';
 import type { AppHeaderUser } from './app-header.svelte';
 
 // Sample data for a fictional site-works contractor. Delete this file once you pass your own.
@@ -166,35 +165,3 @@ export const demoUser: AppHeaderUser = {
 	name: 'Sam Rivera',
 	email: 'sam@example.com'
 };
-
-export type DemoMachine = {
-	id: string;
-	name: string;
-	/** Project the machine is booked to; filtered by the scope switcher. */
-	projectId: string;
-	tone: StatusBadgeTone;
-	status: string;
-};
-
-export const demoMachines: DemoMachine[] = [
-	{ id: 'ex-14', name: 'EX-14 Excavator', projectId: 'p-214', tone: 'ok', status: 'On site' },
-	{
-		id: 'wl-03',
-		name: 'WL-03 Wheel loader',
-		projectId: 'p-302',
-		tone: 'warn',
-		status: 'Service due'
-	},
-	{ id: 'rl-07', name: 'RL-07 Roller', projectId: 'p-319', tone: 'crit', status: 'Out of order' },
-	{ id: 'sk-22', name: 'SK-22 Skid steer', projectId: 'p-101', tone: 'idle', status: 'In yard' },
-	{ id: 'dt-11', name: 'DT-11 Dump truck', projectId: 'p-319', tone: 'ok', status: 'On site' },
-	{
-		id: 'ex-09',
-		name: 'EX-09 Mini excavator',
-		projectId: 'p-238',
-		tone: 'warn',
-		status: 'Service due'
-	},
-	{ id: 'gr-02', name: 'GR-02 Grader', projectId: 'p-326', tone: 'ok', status: 'On site' },
-	{ id: 'cp-05', name: 'CP-05 Compactor', projectId: 'p-315', tone: 'idle', status: 'In yard' }
-];
