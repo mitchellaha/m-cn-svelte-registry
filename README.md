@@ -20,6 +20,7 @@ pnpm dlx shadcn-svelte@latest add https://mitchellaha.github.io/m-cn-svelte-regi
 | `treasury-waterfall-grid` | Monthly cash waterfall grid with Actuals, Plan and Variance tabs.                     |
 | `status-badge`            | Badge with ok, warn, crit and idle tones; adds its colour tokens.                     |
 | `star-rating`             | Star rating input with half stars and readonly mode, from shadcn-svelte-extras (MIT). |
+| `compound-tag`            | Key-value tag in two segments with intents, minimal, round and remove.                |
 | `scope-switcher`          | Header chip and two-pane popover that sets the project scope.                         |
 | `feature-menu`            | Breadcrumb mega-menu with modules, screen cards and pins.                             |
 | `command-palette`         | Cmd/Ctrl+K dialog over screens and actions.                                           |

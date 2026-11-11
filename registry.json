@@ -246,6 +246,25 @@
 			]
 		},
 		{
+			"name": "compound-tag",
+			"type": "registry:ui",
+			"title": "Compound Tag",
+			"description": "Key-value tag in two segments. Intents, minimal, two sizes, round, fill, icons, a remove button and an interactive mode.",
+			"dependencies": ["@lucide/svelte", "tailwind-variants"],
+			"devDependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/compound-tag/compound-tag.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/compound-tag/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
 			"name": "scope-switcher",
 			"type": "registry:block",
 			"title": "Scope Switcher",
