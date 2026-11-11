@@ -12,10 +12,12 @@ Your project needs shadcn-svelte set up (`pnpm dlx shadcn-svelte@latest init`). 
 pnpm dlx shadcn-svelte@latest add https://mitchellaha.github.io/m-cn-svelte-registry/r/copy-button.json
 ```
 
-| Item          | What it is                                                   |
-| ------------- | ------------------------------------------------------------ |
-| `copy-button` | Copies text to the clipboard and shows a check for a moment. |
-| `icon-tile`   | A small bordered square that frames an icon, for row labels. |
+| Item                      | What it is                                                            |
+| ------------------------- | --------------------------------------------------------------------- |
+| `copy-button`             | Copies text to the clipboard and shows a check for a moment.          |
+| `icon-tile`               | A small bordered square that frames an icon, for row labels.          |
+| `bom-tree-grid`           | Bill-of-materials tree grid with cost, lead time and supply roll-ups. |
+| `treasury-waterfall-grid` | Monthly cash waterfall grid with Actuals, Plan and Variance tabs.     |
 
 ## Develop
 

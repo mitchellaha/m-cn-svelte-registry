@@ -12,8 +12,14 @@
 			"devDependencies": [],
 			"registryDependencies": ["button"],
 			"files": [
-				{ "path": "src/lib/registry/ui/copy-button/copy-button.svelte", "type": "registry:ui" },
-				{ "path": "src/lib/registry/ui/copy-button/index.ts", "type": "registry:ui" }
+				{
+					"path": "src/lib/registry/ui/copy-button/copy-button.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/copy-button/index.ts",
+					"type": "registry:ui"
+				}
 			]
 		},
 		{
@@ -25,8 +31,137 @@
 			"devDependencies": [],
 			"registryDependencies": [],
 			"files": [
-				{ "path": "src/lib/registry/ui/icon-tile/icon-tile.svelte", "type": "registry:ui" },
-				{ "path": "src/lib/registry/ui/icon-tile/index.ts", "type": "registry:ui" }
+				{
+					"path": "src/lib/registry/ui/icon-tile/icon-tile.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/icon-tile/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
+			"name": "bom-tree-grid",
+			"type": "registry:block",
+			"title": "BOM Tree Grid",
+			"description": "Bill-of-materials data grid with multi-level tree rows. Cost, lead time and supply risk roll up from leaf parts; toolbar has search, depth buttons, supply filter and display options. Ships with a demo data file you can delete.",
+			"dependencies": ["@tanstack/svelte-table", "@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"badge",
+				"button",
+				"button-group",
+				"dropdown-menu",
+				"field",
+				"input-group",
+				"popover",
+				"select",
+				"switch",
+				"table",
+				"toggle-group",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/icon-tile.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/bom-tree-grid.svelte",
+					"type": "registry:component",
+					"target": "bom-tree-grid/bom-tree-grid.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/bom-tree-grid-demo.svelte",
+					"type": "registry:component",
+					"target": "bom-tree-grid/bom-tree-grid-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/bom.ts",
+					"type": "registry:component",
+					"target": "bom-tree-grid/bom.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/types.ts",
+					"type": "registry:component",
+					"target": "bom-tree-grid/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/icons.ts",
+					"type": "registry:component",
+					"target": "bom-tree-grid/icons.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/bom-tree-grid/demo-data.ts",
+					"type": "registry:component",
+					"target": "bom-tree-grid/demo-data.ts"
+				}
+			]
+		},
+		{
+			"name": "treasury-waterfall-grid",
+			"type": "registry:block",
+			"title": "Treasury Waterfall Grid",
+			"description": "Monthly cash waterfall data grid with Actuals, Plan and Variance tabs. Closing cash, operating movement, group totals, attainment rings and variance badges all derive from per-line monthly plan and actual inputs. Search, expand all, a line-group filter and a month-range stepper drive it. Ships with a demo data file you can delete.",
+			"dependencies": ["@tanstack/svelte-table", "@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"badge",
+				"button",
+				"input-group",
+				"select",
+				"table",
+				"tabs",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/icon-tile.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/treasury-waterfall-grid.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-data.ts",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/treasury-waterfall-grid-data.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/types.ts",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/derive.ts",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/derive.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/table.ts",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/table.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/attainment-ring.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/attainment-ring.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/delta-badge.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/delta-badge.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/variance-cell.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/variance-cell.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/treasury-waterfall-grid/grid-pagination.svelte",
+					"type": "registry:component",
+					"target": "treasury-waterfall-grid/grid-pagination.svelte"
+				}
 			]
 		}
 	]

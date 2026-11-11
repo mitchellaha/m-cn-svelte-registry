@@ -14,6 +14,7 @@ SvelteKit 3 differs from training data: `$lib` is gone (use `#lib`, Node subpath
 
 - `registry.json`: every item. All of `dependencies`, `devDependencies`, `registryDependencies` must be present (empty arrays are fine) or `registry build` fails.
 - `src/lib/registry/ui/<name>/<name>.svelte` + `index.ts`: `registry:ui` items.
+- `src/lib/registry/blocks/<name>/<name>.svelte` + `<name>-demo.svelte` + helpers: `registry:block` items. Component takes `data` as a required prop; the demo holds sample data. Files import each other relatively, and each `files` entry in `registry.json` sets `"target": "<name>/<file>"`.
 - `src/lib/components/ui/`: shadcn-svelte components installed by the CLI, for the preview app and as dependencies. Never published, never hand-edited, excluded from Prettier and ESLint.
 - `src/routes/+page.svelte`: preview page. Lists `registry.json` items, renders a demo snippet per item, shows the install command.
 - `src/lib/site.ts`: `REGISTRY_URL`, the GitHub Pages address of the built JSON.
