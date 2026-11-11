@@ -1,0 +1,33 @@
+{
+	"$schema": "https://shadcn-svelte.com/schema/registry.json",
+	"name": "m-cn-svelte",
+	"homepage": "https://github.com/mitchellaha/m-cn-svelte-registry",
+	"items": [
+		{
+			"name": "copy-button",
+			"type": "registry:ui",
+			"title": "Copy Button",
+			"description": "A button that copies text to the clipboard and shows a check for a moment.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["button"],
+			"files": [
+				{ "path": "src/lib/registry/ui/copy-button/copy-button.svelte", "type": "registry:ui" },
+				{ "path": "src/lib/registry/ui/copy-button/index.ts", "type": "registry:ui" }
+			]
+		},
+		{
+			"name": "icon-tile",
+			"type": "registry:ui",
+			"title": "Icon Tile",
+			"description": "A small bordered square that frames an icon, for row labels and lists.",
+			"dependencies": ["tailwind-variants"],
+			"devDependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{ "path": "src/lib/registry/ui/icon-tile/icon-tile.svelte", "type": "registry:ui" },
+				{ "path": "src/lib/registry/ui/icon-tile/index.ts", "type": "registry:ui" }
+			]
+		}
+	]
+}
