@@ -37,7 +37,7 @@ SvelteKit 3 differs from training data: `$lib` is gone (use `#lib`, Node subpath
 
 `pnpm dev --port 5173 --strictPort`. `.claude/launch.json` has a `dev` entry; when this repo is not the session's primary project, start it with Bash in the background and open `http://localhost:5173` with `preview_start { url }`.
 
-## Context7 library IDs
+## Docs lookup
 
-- shadcn-svelte: `/websites/shadcn-svelte`
-- SvelteKit 3: not reliable in Context7 yet; use svelte.dev docs.
+- Svelte and SvelteKit 3: use the Svelte MCP (official `svelte` plugin, enabled in `.claude/settings.json` via `sv add ai-tools`). It serves current svelte.dev docs; run its autofixer on new or edited `.svelte` files. Context7 is not reliable for SvelteKit 3.
+- shadcn-svelte: Context7 `/websites/shadcn-svelte`.
