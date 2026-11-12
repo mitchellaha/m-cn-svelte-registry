@@ -3,9 +3,11 @@ import AppHeaderDemo from '$lib/registry/blocks/app-header/app-header-demo.svelt
 import BomTreeGridDemo from '$lib/registry/blocks/bom-tree-grid/bom-tree-grid-demo.svelte';
 import CommandPaletteDemo from '$lib/registry/blocks/command-palette/command-palette-demo.svelte';
 import FeatureMenuDemo from '$lib/registry/blocks/feature-menu/feature-menu-demo.svelte';
+import MetricLedgerDemo from '$lib/registry/blocks/metric-ledger/metric-ledger-demo.svelte';
 import ScopeSwitcherDemo from '$lib/registry/blocks/scope-switcher/scope-switcher-demo.svelte';
 import TreasuryWaterfallGridDemo from '$lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte';
 import CopyButtonDemo from './copy-button-demo.svelte';
+import DeltaPillDemo from './delta-pill-demo.svelte';
 import IconTileDemo from './icon-tile-demo.svelte';
 import CompoundTagDemo from './compound-tag-demo.svelte';
 import StarRatingDemo from './star-rating-demo.svelte';
@@ -26,12 +28,14 @@ export const demos: Record<string, Demo> = {
 	'status-badge': { component: StatusBadgeDemo, height: 160, padded: false },
 	'star-rating': { component: StarRatingDemo, height: 200, padded: false },
 	'compound-tag': { component: CompoundTagDemo, height: 260, padded: false },
+	'delta-pill': { component: DeltaPillDemo, height: 240, padded: false },
 	'bom-tree-grid': { component: BomTreeGridDemo, height: 760, padded: true },
 	'treasury-waterfall-grid': { component: TreasuryWaterfallGridDemo, height: 760, padded: true },
 	'scope-switcher': { component: ScopeSwitcherDemo, height: 600, padded: true },
 	'feature-menu': { component: FeatureMenuDemo, height: 640, padded: true },
 	'command-palette': { component: CommandPaletteDemo, height: 540, padded: true },
-	'app-header': { component: AppHeaderDemo, height: 640, padded: true }
+	'app-header': { component: AppHeaderDemo, height: 640, padded: true },
+	'metric-ledger': { component: MetricLedgerDemo, height: 520, padded: true }
 };
 
 export type Viewport = 'phone' | 'tablet' | 'desktop';

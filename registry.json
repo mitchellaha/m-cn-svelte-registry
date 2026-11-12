@@ -392,6 +392,76 @@
 					"target": "app-header/demo-data.ts"
 				}
 			]
+		},
+		{
+			"name": "delta-pill",
+			"type": "registry:ui",
+			"title": "Delta Pill",
+			"description": "A change pill: a trend icon and the move from a prior figure, green or red by direction. Percent figures read in points, the rest as a relative %. Optional hover with both windows and the change. Exports its delta and number-format helpers.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["tooltip"],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/delta-pill/delta-pill.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/delta-pill/delta.ts",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/delta-pill/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
+			"name": "metric-ledger",
+			"type": "registry:block",
+			"title": "Metric Ledger",
+			"description": "A KPI table with a row per metric and a column per entity (org, region, product). Each cell shows its value with an optional SVG sparkline, a change pill against a prior figure and a note. Optional section bands, label hover notes and a per-row actions snippet. Ships with a demo data file you can delete.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"button",
+				"dropdown-menu",
+				"table",
+				"tooltip",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/delta-pill.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/metric-ledger.svelte",
+					"type": "registry:component",
+					"target": "metric-ledger/metric-ledger.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/metric-ledger-demo.svelte",
+					"type": "registry:component",
+					"target": "metric-ledger/metric-ledger-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/metric-ledger-data.ts",
+					"type": "registry:component",
+					"target": "metric-ledger/metric-ledger-data.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/types.ts",
+					"type": "registry:component",
+					"target": "metric-ledger/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/sparkline.ts",
+					"type": "registry:component",
+					"target": "metric-ledger/sparkline.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/metric-ledger/sparkline.svelte",
+					"type": "registry:component",
+					"target": "metric-ledger/sparkline.svelte"
+				}
+			]
 		}
 	]
 }
