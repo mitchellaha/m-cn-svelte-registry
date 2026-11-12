@@ -48,21 +48,13 @@
 			"name": "data-grid",
 			"type": "registry:ui",
 			"title": "Data Grid Kit",
-			"description": "The shared parts of a data grid block: frame, header, panel and table viewport, a search box, a row expand toggle and a density select, plus helpers for cell padding, the expanded-row class, a TanStack Table default and the search-pins-rows-open rule. Bring your own table and columns.",
+			"description": "The shared parts of a data grid block: panel and table viewport, a search box, a row expand toggle and a density select, plus helpers for cell padding, the expanded-row class, a TanStack Table default and the search-pins-rows-open rule. Bring your own table and columns.",
 			"dependencies": ["@lucide/svelte"],
 			"devDependencies": [],
 			"registryDependencies": ["button", "input-group", "select"],
 			"files": [
 				{
-					"path": "src/lib/registry/ui/data-grid/frame.svelte",
-					"type": "registry:ui"
-				},
-				{
-					"path": "src/lib/registry/ui/data-grid/frame-header.svelte",
-					"type": "registry:ui"
-				},
-				{
-					"path": "src/lib/registry/ui/data-grid/frame-panel.svelte",
+					"path": "src/lib/registry/ui/data-grid/panel.svelte",
 					"type": "registry:ui"
 				},
 				{

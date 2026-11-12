@@ -204,7 +204,7 @@
 	</Table.Row>
 {/snippet}
 
-<DataGrid.FramePanel>
+<DataGrid.Panel>
 	<Tabs.Root value={tab} onValueChange={(value) => (tab = value as TreasuryTab)}>
 		<div class="flex flex-wrap items-center justify-between gap-2 border-b">
 			<Tabs.List variant="line">
@@ -360,4 +360,4 @@
 			<GridPagination {table} recordCount={table.getRowCount()} />
 		</Tabs.Content>
 	</Tabs.Root>
-</DataGrid.FramePanel>
+</DataGrid.Panel>

@@ -2,7 +2,7 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { cn, type WithElementRef } from '#lib/utils.js';
 
-	/** The tinted outer box. Holds a FrameHeader and a FramePanel. */
+	/** The bordered panel the toolbar and the table sit in: a grid block's root. */
 	let {
 		ref = $bindable(null),
 		class: className,
@@ -13,8 +13,8 @@
 
 <div
 	bind:this={ref}
-	data-slot="frame"
-	class={cn('flex w-full flex-col rounded-xl border bg-muted/40 p-1', className)}
+	data-slot="data-grid-panel"
+	class={cn('rounded-lg border bg-background p-3 shadow-xs', className)}
 	{...restProps}
 >
 	{@render children?.()}

@@ -233,7 +233,7 @@
 	<Badge variant="outline" class={TONE_CLASS[SUPPLY_TONE[s]]}>{SUPPLY_LABEL[s]}</Badge>
 {/snippet}
 
-<DataGrid.FramePanel class="flex flex-col gap-3">
+<DataGrid.Panel class="flex flex-col gap-3">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<DataGrid.Search placeholder="Search parts..." bind:value={search} />
 
@@ -512,4 +512,4 @@
 			</Table.Footer>
 		</Table.Root>
 	</DataGrid.Viewport>
-</DataGrid.FramePanel>
+</DataGrid.Panel>
