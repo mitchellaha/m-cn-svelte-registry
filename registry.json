@@ -45,6 +45,53 @@
 			]
 		},
 		{
+			"name": "data-grid",
+			"type": "registry:ui",
+			"title": "Data Grid Kit",
+			"description": "The shared parts of a data grid block: frame, header, panel and table viewport, a search box, a row expand toggle and a density select, plus helpers for cell padding, the expanded-row class, a TanStack Table default and the search-pins-rows-open rule. Bring your own table and columns.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["button", "input-group", "select"],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/data-grid/frame.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/frame-header.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/frame-panel.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/viewport.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/search.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/row-toggle.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/density-select.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/data-grid.ts",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/data-grid/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
 			"name": "bom-tree-grid",
 			"type": "registry:block",
 			"title": "BOM Tree Grid",
@@ -57,12 +104,11 @@
 				"button-group",
 				"dropdown-menu",
 				"field",
-				"input-group",
 				"popover",
-				"select",
 				"switch",
 				"table",
 				"toggle-group",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/data-grid.json",
 				"https://mitchellaha.github.io/m-cn-svelte-registry/r/icon-tile.json"
 			],
 			"files": [
@@ -102,16 +148,16 @@
 			"name": "treasury-waterfall-grid",
 			"type": "registry:block",
 			"title": "Treasury Waterfall Grid",
-			"description": "Monthly cash waterfall data grid with Actuals, Plan and Variance tabs. Closing cash, operating movement, group totals, attainment rings and variance badges all derive from per-line monthly plan and actual inputs. Search, expand all, a line-group filter and a month-range stepper drive it. Ships with a demo data file you can delete.",
+			"description": "Monthly cash waterfall data grid with Actuals, Plan and Variance tabs. Closing cash, operating movement, group totals, attainment rings and variance badges all derive from per-line monthly plan and actual inputs. Search, expand all, a line-group filter, a density setting and a month-range stepper drive it. Ships with a demo data file you can delete.",
 			"dependencies": ["@tanstack/svelte-table", "@lucide/svelte"],
 			"devDependencies": [],
 			"registryDependencies": [
 				"badge",
 				"button",
-				"input-group",
 				"select",
 				"table",
 				"tabs",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/data-grid.json",
 				"https://mitchellaha.github.io/m-cn-svelte-registry/r/icon-tile.json"
 			],
 			"files": [

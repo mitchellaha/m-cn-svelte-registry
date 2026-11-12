@@ -7,6 +7,7 @@ import MetricLedgerDemo from '$lib/registry/blocks/metric-ledger/metric-ledger-d
 import ScopeSwitcherDemo from '$lib/registry/blocks/scope-switcher/scope-switcher-demo.svelte';
 import TreasuryWaterfallGridDemo from '$lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte';
 import CopyButtonDemo from './copy-button-demo.svelte';
+import DataGridDemo from './data-grid-demo.svelte';
 import DeltaPillDemo from './delta-pill-demo.svelte';
 import IconTileDemo from './icon-tile-demo.svelte';
 import CompoundTagDemo from './compound-tag-demo.svelte';
@@ -29,6 +30,7 @@ export const demos: Record<string, Demo> = {
 	'star-rating': { component: StarRatingDemo, height: 200, padded: false },
 	'compound-tag': { component: CompoundTagDemo, height: 260, padded: false },
 	'delta-pill': { component: DeltaPillDemo, height: 240, padded: false },
+	'data-grid': { component: DataGridDemo, height: 480, padded: true },
 	'bom-tree-grid': { component: BomTreeGridDemo, height: 760, padded: true },
 	'treasury-waterfall-grid': { component: TreasuryWaterfallGridDemo, height: 760, padded: true },
 	'scope-switcher': { component: ScopeSwitcherDemo, height: 600, padded: true },
