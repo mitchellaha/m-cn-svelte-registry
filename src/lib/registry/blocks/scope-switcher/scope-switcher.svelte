@@ -137,6 +137,7 @@
 		>
 			<!-- Left pane: which list to show -->
 			<Command.Root
+				disableInitialScroll
 				class={cn('rounded-none bg-transparent p-0', step === 'items' && 'max-sm:hidden')}
 			>
 				<div class="border-b p-1.5">
@@ -191,6 +192,7 @@
 
 			<!-- Right pane: pick items -->
 			<Command.Root
+				disableInitialScroll
 				class={cn('rounded-none bg-transparent p-0', step === 'groups' && 'max-sm:hidden')}
 			>
 				<div class="flex items-center gap-2 border-b px-3 py-2.5 max-sm:py-1.5 max-sm:pl-1.5">
