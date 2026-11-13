@@ -7,6 +7,7 @@
 	import { installCommand } from '#lib/site.js';
 	import { CopyButton } from '$lib/registry/ui/copy-button/index.js';
 	import { viewports, type Viewport } from './demos/index.js';
+	import { groups } from './groups.js';
 	import PreviewFrame from './preview-frame.svelte';
 	import SiteHeader from './site-header.svelte';
 	import SiteSidebar from './site-sidebar.svelte';
@@ -23,12 +24,6 @@
 	});
 
 	const icons = { phone: SmartphoneIcon, tablet: TabletIcon, desktop: MonitorIcon };
-
-	// The page and the sidebar share this order, so the sidebar highlight moves down as you scroll.
-	const groups = [
-		{ label: 'Components', items: registry.items.filter((i) => i.type === 'registry:ui') },
-		{ label: 'Blocks', items: registry.items.filter((i) => i.type === 'registry:block') }
-	].filter((g) => g.items.length);
 </script>
 
 <svelte:head>
@@ -36,7 +31,7 @@
 </svelte:head>
 
 <div id="top" class="min-h-svh bg-background">
-	<SiteHeader {groups} />
+	<SiteHeader />
 	<div class="mx-auto flex max-w-screen-2xl gap-8 px-4 sm:px-6">
 		<aside
 			class="sticky top-12 hidden h-[calc(100svh-3rem)] w-52 shrink-0 overflow-y-auto border-r py-6 pr-4 lg:block"

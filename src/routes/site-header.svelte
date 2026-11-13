@@ -3,17 +3,22 @@
 	import MoonIcon from '@lucide/svelte/icons/moon';
 	import SunIcon from '@lucide/svelte/icons/sun';
 	import { toggleMode } from 'mode-watcher';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import * as Sheet from '#lib/components/ui/sheet/index.js';
+	import { cn } from '#lib/utils.js';
+	import { groups } from './groups.js';
 	import SiteSidebar from './site-sidebar.svelte';
 
-	type Group = { label: string; items: { name: string; title: string }[] };
-
-	let { groups }: { groups: Group[] } = $props();
-
-	const count = $derived(groups.reduce((n, g) => n + g.items.length, 0));
 	let menuOpen = $state(false);
+
+	const linkClass = (route: string) =>
+		cn(
+			'rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground',
+			page.route.id === route && 'font-medium text-foreground'
+		);
 </script>
 
 <header
@@ -43,20 +48,33 @@
 				</div>
 			</Sheet.Content>
 		</Sheet.Root>
-		<a href="#top" class="flex items-center gap-2">
+		<a href={resolve('/')} class="flex items-center gap-2">
 			<span
 				class="flex size-6 items-center justify-center rounded-md bg-primary font-mono text-[0.625rem] font-semibold text-primary-foreground"
 			>
 				m
 			</span>
-			<span class="text-sm font-medium">m-cn-svelte</span>
+			<span class="hidden text-sm font-medium sm:inline">m-cn-svelte</span>
 		</a>
 		<Separator orientation="vertical" class="hidden h-4! sm:block" />
-		<span class="hidden text-xs text-muted-foreground sm:inline">{count} items</span>
+		<nav class="flex items-center gap-0.5" aria-label="Pages">
+			<a
+				href={resolve('/')}
+				aria-current={page.route.id === '/' ? 'page' : undefined}
+				class={linkClass('/')}>Components</a
+			>
+			<!-- /sink sets trailingSlash: 'always', so link straight to the folder index. -->
+			<a
+				href="{resolve('/sink')}/"
+				aria-current={page.route.id === '/sink' ? 'page' : undefined}
+				class={linkClass('/sink')}>Kitchen sink</a
+			>
+		</nav>
 		<div class="ml-auto flex items-center gap-1">
 			<Button
 				variant="ghost"
 				size="sm"
+				class="hidden sm:inline-flex"
 				href="https://github.com/mitchellaha/m-cn-svelte-registry"
 				target="_blank"
 				rel="noopener"
