@@ -33,6 +33,8 @@
 	import ArrowDownIcon from '@lucide/svelte/icons/arrow-down';
 	import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 	import CheckIcon from '@lucide/svelte/icons/check';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import ChevronsDownUpIcon from '@lucide/svelte/icons/chevrons-down-up';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import ClockIcon from '@lucide/svelte/icons/clock';
 	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
@@ -63,13 +65,6 @@
 	import type { BomRow, Supply } from './types.js';
 
 	let { product = 'Meridian C2 Cargo', data }: BomTreeGridProps = $props();
-
-	const DEPTH_OPTIONS = [
-		['collapse', 'Collapse'],
-		['1', '1'],
-		['2', '2'],
-		['all', 'All']
-	] as const;
 
 	/** Columns the Display popover can hide. Part, cost and actions always show. */
 	const OPTIONAL_COLUMNS = [
@@ -174,21 +169,36 @@
 			(columnVisibility = functionalUpdate(updater, columnVisibility))
 	});
 
-	// Depth presets change only with the data, not on every toggle.
-	const depthPresets = $derived(
-		([1, 2] as const).map((d) => [String(d), Object.keys(expandedToDepth(bom.flat, d))] as const)
+	/** Number of tree levels; level 1 is the top assemblies only, the last shows every row. */
+	const levelCount = $derived(Math.max(0, ...bom.flat.map((r) => r.depth)) + 1);
+
+	// Open ids per middle level change only with the data, not on every toggle.
+	const levelPresets = $derived(
+		Array.from({ length: Math.max(0, levelCount - 2) }, (_, i) => {
+			const level = i + 2;
+			return [level, Object.keys(expandedToDepth(bom.flat, level - 1))] as const;
+		})
 	);
 
-	const depthValue = $derived.by(() => {
-		if (expanded === true) return 'all';
+	/** The level the current expand state matches, or 0 for a hand-made mix. */
+	const currentLevel = $derived.by(() => {
+		if (expanded === true) return levelCount;
 		const map = expanded;
 		const open = new Set(Object.keys(map).filter((k) => map[k]));
-		if (open.size === 0) return 'collapse';
-		const preset = depthPresets.find(
+		if (open.size === 0) return 1;
+		const preset = levelPresets.find(
 			([, ids]) => ids.length === open.size && ids.every((id) => open.has(id))
 		);
-		return preset?.[0] ?? '';
+		return preset?.[0] ?? 0;
 	});
+
+	const allExpanded = $derived(currentLevel === levelCount);
+
+	function levelLabel(level: number) {
+		if (level === 1) return 'Level 1 (Top only)';
+		if (level === levelCount) return `Level ${level} (All)`;
+		return `Expand to Level ${level}`;
+	}
 
 	const shownOptional = $derived(
 		OPTIONAL_COLUMNS.map(([id]) => id as string).filter((id) => columnVisibility[id] !== false)
@@ -196,10 +206,10 @@
 
 	const cellPad = $derived(DataGrid.densityCellClass(density));
 
-	function setDepth(value: (typeof DEPTH_OPTIONS)[number][0]) {
-		if (value === 'collapse') expanded = {};
-		else if (value === 'all') expanded = true;
-		else expanded = expandedToDepth(bom.flat, Number(value));
+	function setLevel(level: number) {
+		if (level <= 1) expanded = {};
+		else if (level >= levelCount) expanded = true;
+		else expanded = expandedToDepth(bom.flat, level - 1);
 	}
 
 	function toggleSupply(s: Supply, on: boolean) {
@@ -239,19 +249,42 @@
 
 		<div class="flex flex-wrap items-center gap-2">
 			<ButtonGroup.Root aria-label="Tree depth">
-				<ButtonGroup.Text>Depth</ButtonGroup.Text>
-				{#each DEPTH_OPTIONS as [value, label] (value)}
-					<Button
-						variant="outline"
-						size="sm"
-						aria-pressed={depthValue === value}
-						disabled={Boolean(query)}
-						class="aria-pressed:bg-muted aria-pressed:text-foreground"
-						onclick={() => setDepth(value)}
-					>
-						{label}
-					</Button>
-				{/each}
+				<Button
+					variant="outline"
+					size="sm"
+					disabled={Boolean(query)}
+					onclick={() => setLevel(allExpanded ? 1 : levelCount)}
+				>
+					{#if allExpanded}
+						<ChevronsDownUpIcon data-icon="inline-start" />
+						Collapse All
+					{:else}
+						<ChevronsUpDownIcon data-icon="inline-start" />
+						Expand All
+					{/if}
+				</Button>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger disabled={Boolean(query)}>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="icon-sm" aria-label="Jump to depth">
+								<ChevronDownIcon />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="start" class="w-56">
+						<DropdownMenu.Group>
+							<DropdownMenu.Label>Jump to depth</DropdownMenu.Label>
+							{#each { length: levelCount }, i (i)}
+								<DropdownMenu.Item onSelect={() => setLevel(i + 1)}>
+									{levelLabel(i + 1)}
+									{#if currentLevel === i + 1}
+										<CheckIcon class="ms-auto" />
+									{/if}
+								</DropdownMenu.Item>
+							{/each}
+						</DropdownMenu.Group>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
 			</ButtonGroup.Root>
 
 			<DropdownMenu.Root>
