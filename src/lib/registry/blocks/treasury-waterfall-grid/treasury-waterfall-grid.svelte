@@ -30,9 +30,11 @@
 	import PiggyBankIcon from '@lucide/svelte/icons/piggy-bank';
 	import ReceiptIcon from '@lucide/svelte/icons/receipt';
 	import TrendingUpIcon from '@lucide/svelte/icons/trending-up';
-	import UnfoldVerticalIcon from '@lucide/svelte/icons/unfold-vertical';
+	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 	import WalletIcon from '@lucide/svelte/icons/wallet';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import * as Popover from '#lib/components/ui/popover/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
 	import * as Table from '#lib/components/ui/table/index.js';
 	import * as Tabs from '#lib/components/ui/tabs/index.js';
@@ -145,11 +147,14 @@
 		table.getFilteredRowModel().rows.reduce((n, g) => n + g.subRows.length, 0)
 	);
 
-	const allExpanded = $derived(
-		expanded === true ||
-			(treasury.rows.length > 0 &&
-				treasury.rows.every((r) => (expanded as Record<string, boolean>)[r.id]))
-	);
+	/** Groups and their lines make two levels: 1 is groups only, 2 is every line. 0 is a mix. */
+	const currentLevel = $derived.by(() => {
+		if (expanded === true) return 2;
+		const map = expanded;
+		const open = treasury.rows.filter((r) => map[r.id]).length;
+		if (open === 0) return 1;
+		return open === treasury.rows.length ? 2 : 0;
+	});
 
 	const groupLabel = $derived(
 		group === ALL_LINES ? 'All Lines' : (data.groups.find((g) => g.id === group)?.name ?? group)
@@ -212,16 +217,31 @@
 					<Tabs.Trigger {value} class="px-2 py-1 text-sm">{label}</Tabs.Trigger>
 				{/each}
 			</Tabs.List>
-			<Button
-				variant="ghost"
-				size="sm"
-				class="mb-1"
-				disabled={Boolean(query)}
-				onclick={() => (expanded = allExpanded ? {} : true)}
-			>
-				<UnfoldVerticalIcon data-icon="inline-start" />
-				{allExpanded ? 'Collapse All' : 'Expand All'}
-			</Button>
+			<div class="mb-1 flex items-center gap-2">
+				<DataGrid.DepthMenu
+					levelCount={2}
+					level={currentLevel}
+					onLevelChange={(level) => (expanded = level === 2 ? true : {})}
+					disabled={Boolean(query)}
+				/>
+				<Popover.Root>
+					<Popover.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								<SlidersHorizontalIcon data-icon="inline-start" />
+								Display
+							</Button>
+						{/snippet}
+					</Popover.Trigger>
+					<Popover.Content align="end" class="flex w-72 flex-col gap-3 p-3">
+						<span class="text-xs font-medium text-muted-foreground">Table</span>
+						<Field.Field orientation="horizontal">
+							<Field.Label for="treasury-density">Density</Field.Label>
+							<DataGrid.DensitySelect id="treasury-density" align="end" bind:value={density} />
+						</Field.Field>
+					</Popover.Content>
+				</Popover.Root>
+			</div>
 		</div>
 
 		<Tabs.Content value={tab} class="flex flex-col gap-3 pt-3">
@@ -239,7 +259,6 @@
 							{/each}
 						</Select.Content>
 					</Select.Root>
-					<DataGrid.DensitySelect bind:value={density} />
 				</div>
 
 				<div class="flex items-center gap-1">

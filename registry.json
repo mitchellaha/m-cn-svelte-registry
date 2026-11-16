@@ -48,10 +48,10 @@
 			"name": "data-grid",
 			"type": "registry:ui",
 			"title": "Data Grid Kit",
-			"description": "The shared parts of a data grid block: panel and table viewport, a search box, a row expand toggle and a density select, plus helpers for cell padding, the expanded-row class, a TanStack Table default and the search-pins-rows-open rule. Bring your own table and columns.",
+			"description": "The shared parts of a data grid block: panel and table viewport, a search box, a row expand toggle, an expand-all split button with a jump-to-depth menu and a density select, plus helpers for cell padding, the expanded-row class, a TanStack Table default and the search-pins-rows-open rule. Bring your own table and columns.",
 			"dependencies": ["@lucide/svelte"],
 			"devDependencies": [],
-			"registryDependencies": ["button", "input-group", "select"],
+			"registryDependencies": ["button", "button-group", "dropdown-menu", "input-group", "select"],
 			"files": [
 				{
 					"path": "src/lib/registry/ui/data-grid/panel.svelte",
@@ -74,6 +74,10 @@
 					"type": "registry:ui"
 				},
 				{
+					"path": "src/lib/registry/ui/data-grid/depth-menu.svelte",
+					"type": "registry:ui"
+				},
+				{
 					"path": "src/lib/registry/ui/data-grid/data-grid.ts",
 					"type": "registry:ui"
 				},
@@ -93,7 +97,6 @@
 			"registryDependencies": [
 				"badge",
 				"button",
-				"button-group",
 				"dropdown-menu",
 				"field",
 				"popover",
@@ -146,6 +149,8 @@
 			"registryDependencies": [
 				"badge",
 				"button",
+				"field",
+				"popover",
 				"select",
 				"table",
 				"tabs",

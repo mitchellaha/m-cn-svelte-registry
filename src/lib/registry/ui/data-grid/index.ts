@@ -1,4 +1,5 @@
 import DensitySelect from './density-select.svelte';
+import DepthMenu from './depth-menu.svelte';
 import Panel from './panel.svelte';
 import RowToggle from './row-toggle.svelte';
 import Search from './search.svelte';
@@ -13,4 +14,4 @@ export {
 	type Density
 } from './data-grid.js';
 
-export { DensitySelect, Panel, RowToggle, Search, Viewport };
+export { DensitySelect, DepthMenu, Panel, RowToggle, Search, Viewport };
