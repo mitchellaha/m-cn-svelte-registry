@@ -1,35 +1,12 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { cn } from '#lib/utils.js';
 
 	type Group = { label: string; items: { name: string; title: string }[] };
 
 	let { groups, onnavigate }: { groups: Group[]; onnavigate?: () => void } = $props();
-
-	const names = $derived(groups.flatMap((g) => g.items.map((i) => i.name)));
-	let active = $state('');
-
-	// Active = the last section whose top has passed under the header; the last one once scrolled to the bottom.
-	function update() {
-		const atBottom =
-			window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-		if (atBottom) {
-			active = names[names.length - 1] ?? '';
-			return;
-		}
-		let current = names[0] ?? '';
-		for (const name of names) {
-			const el = document.getElementById(name);
-			if (el && el.getBoundingClientRect().top <= 80) current = name;
-		}
-		active = current;
-	}
-
-	$effect(() => {
-		update();
-	});
 </script>
-
-<svelte:window onscroll={update} onresize={update} />
 
 <nav aria-label="Registry items" class="flex flex-col gap-5 text-xs">
 	{#each groups as group (group.label)}
@@ -38,13 +15,15 @@
 				{group.label}
 			</p>
 			{#each group.items as item (item.name)}
+				{@const active = page.params.name === item.name}
+				<!-- Item pages set trailingSlash: 'always', so link straight to the folder index. -->
 				<a
-					href="#{item.name}"
-					aria-current={active === item.name ? 'location' : undefined}
+					href="{resolve('/(docs)/components/[name]', { name: item.name })}/"
+					aria-current={active ? 'page' : undefined}
 					onclick={onnavigate}
 					class={cn(
 						'rounded-md px-2 py-1 text-foreground/70 transition-colors hover:bg-muted hover:text-foreground',
-						active === item.name && 'bg-muted font-medium text-foreground'
+						active && 'bg-muted font-medium text-foreground'
 					)}
 				>
 					{item.title}

@@ -16,7 +16,10 @@ SvelteKit 3 differs from training data: `$lib` is gone (use `#lib`, Node subpath
 - `src/lib/registry/ui/<name>/<name>.svelte` + `index.ts`: `registry:ui` items.
 - `src/lib/registry/blocks/<name>/<name>.svelte` + `<name>-demo.svelte` + helpers: `registry:block` items. Component takes `data` as a required prop; the demo holds sample data. Files import each other relatively, and each `files` entry in `registry.json` sets `"target": "<name>/<file>"`.
 - `src/lib/components/ui/`: shadcn-svelte components installed by the CLI, for the preview app and as dependencies. Never published, never hand-edited, excluded from Prettier and ESLint.
-- `src/routes/+page.svelte`: preview page. Lists `registry.json` items with the install command; each demo sits in `preview-frame.svelte` with a Phone / Tablet / Desktop toggle.
+- `src/routes/groups.ts`: the sidebar groups. Components = `registry:ui`; Composites = `registry:block` without `"categories": ["page"]`. Page blocks (with that category) are left out and shown on `/blocks`.
+- `src/routes/(docs)/`: layout with header and sidebar. `+page.svelte` is the index of cards; `components/[name]/` is one prerendered page per Component or Composite: title, description, demo in `preview-frame.svelte` (Phone / Tablet / Desktop toggle), install command.
+- `src/routes/blocks/`: page blocks in a shadcn-svelte style viewer (Preview / Code tabs). Code is highlighted by Shiki in `+page.server.ts` at prerender.
+- `src/routes/sink/`: every Component and Composite demo on one page.
 - `src/routes/demos/index.ts`: one entry per item (demo component, iframe height). Add an entry for every new item. ui-item demos live in `src/routes/demos/`; block demos are the published `*-demo.svelte` files.
 - `src/routes/preview/[name]/`: standalone, prerendered page per item. Phone and Tablet load it in an iframe at 390 / 768px so Tailwind breakpoints respond to that width.
 - `src/lib/site.ts`: `REGISTRY_URL`, the GitHub Pages address of the built JSON.

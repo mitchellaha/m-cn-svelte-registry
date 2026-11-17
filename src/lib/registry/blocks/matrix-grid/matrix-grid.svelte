@@ -1,0 +1,736 @@
+<script lang="ts" module>
+	import type { SortingState } from '@tanstack/svelte-table';
+	import type { MatrixSchema, RowMode } from './types.js';
+
+	export type MatrixGridProps<T> = {
+		/** The input rows. Search and filters narrow them; grouping rolls them up. */
+		data: T[];
+		schema: MatrixSchema<T>;
+		/** Dimension ids to group by, outermost first. Bindable, so a page can keep it in the URL. */
+		grouping?: string[];
+		/** Figure ids shown, in any order (schema order wins). Bindable. Default every figure. */
+		columns?: string[];
+		/** One sort at most: `[{ id, desc }]`, id a figure id or `LABEL_ID`. Bindable. */
+		sorting?: SortingState;
+		/** Column widths in px by column id (`LABEL_ID` for the label). Bindable; empty uses defaults. */
+		widths?: Record<string, number>;
+		/** Paged with a pager, or one virtual scrolling list. Default 'virtual'. */
+		defaultRowMode?: RowMode;
+		defaultDensity?: 'comfortable' | 'compact';
+		pageSizes?: number[];
+		/** Max height of the scrolling table, in px. The header and total row stick inside it. */
+		height?: number;
+		searchPlaceholder?: string;
+		/** First cell of the total row. */
+		totalLabel?: string;
+		/** CSV export file name. False hides the export button. */
+		exportFileName?: string | false;
+		class?: string;
+	};
+</script>
+
+<script lang="ts" generics="T">
+	import { tick, untrack } from 'svelte';
+	import {
+		type ColumnDef,
+		type ExpandedState,
+		createExpandedRowModel,
+		createSortedRowModel,
+		createTable,
+		functionalUpdate,
+		rowExpandingFeature,
+		rowSortingFeature,
+		sortFn_alphanumeric,
+		sortFn_basic,
+		tableFeatures
+	} from '@tanstack/svelte-table';
+	import DownloadIcon from '@lucide/svelte/icons/download';
+	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
+	import { Button } from '#lib/components/ui/button/index.js';
+	import * as Field from '#lib/components/ui/field/index.js';
+	import * as Popover from '#lib/components/ui/popover/index.js';
+	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
+	import { cn } from '#lib/utils.js';
+	import * as DataGrid from '$lib/registry/ui/data-grid/index.js';
+	import ColumnMenu from './column-menu.svelte';
+	import FilterPanel, { type FilterField } from './filter-panel.svelte';
+	import GroupMenu from './group-menu.svelte';
+	import HeaderMenu from './header-menu.svelte';
+	import {
+		ALT_BAND_HEADER,
+		ALT_BAND_BODY,
+		FIGURE_WIDTH,
+		ROW_HEIGHT,
+		bands,
+		buildTree,
+		download,
+		filterRows,
+		formatFigure,
+		isActiveRule,
+		toCsv,
+		totalValues,
+		virtualWindow,
+		type RangeFilters
+	} from './matrix.js';
+	import { LABEL_ID, type FilterGroup, type MatrixNode } from './types.js';
+
+	let {
+		data,
+		schema,
+		grouping = $bindable([]),
+		columns: columnsProp = $bindable(),
+		sorting = $bindable([]),
+		widths = $bindable({}),
+		defaultRowMode = 'virtual',
+		defaultDensity = 'compact',
+		pageSizes = [25, 50, 100],
+		height = 600,
+		searchPlaceholder = 'Search...',
+		totalLabel = 'Total',
+		exportFileName = 'matrix.csv',
+		class: className
+	}: MatrixGridProps<T> = $props();
+
+	type Node = MatrixNode<T>;
+
+	const LABEL_WIDTH = 280;
+
+	// The default* props only seed state; the toolbar owns it after load.
+	let search = $state('');
+	const query = $derived(search.trim().toLowerCase());
+	const shown = $derived(columnsProp ?? schema.figures.map((f) => f.id));
+	const setShown = (ids: string[]) => (columnsProp = ids);
+	let ranges = $state.raw<RangeFilters>({});
+	let advanced = $state.raw<FilterGroup>({ logic: 'and', rules: [] });
+	let density = $state<DataGrid.Density>(untrack(() => defaultDensity));
+	let rowMode = $state<RowMode>(untrack(() => defaultRowMode));
+	let pageSize = $state(untrack(() => pageSizes[0] ?? 25));
+	let viewportWidth = $state(0);
+	// On a phone the label column's default gives way so figures show beside it; a width the
+	// user dragged to always wins.
+	const labelCol = $derived(
+		widths[LABEL_ID] ??
+			(viewportWidth
+				? Math.min(LABEL_WIDTH, Math.max(140, Math.round(viewportWidth * 0.45)))
+				: LABEL_WIDTH)
+	);
+	let hoverCol = $state<string | null>(null);
+
+	const figures = $derived(schema.figures.filter((f) => shown.includes(f.id)));
+	/** Band row (32px) plus the figure header row (40px, two lines); just the band row with no figures. */
+	const headHeight = $derived(figures.length ? 32 + 40 : 32);
+	const headRows = $derived(figures.length ? 2 : 1);
+	const headerBands = $derived(bands(figures));
+	// Sorts and ranges on columns that are switched off stop applying.
+	const shownRanges = $derived(
+		Object.fromEntries(Object.entries(ranges).filter(([id]) => shown.includes(id)))
+	);
+	const shownSorting = $derived(sorting.filter((s) => s.id === LABEL_ID || shown.includes(s.id)));
+
+	const filtered = $derived(filterRows(data, schema, { query, ranges: shownRanges, advanced }));
+	const tree = $derived(buildTree(filtered, schema, grouping));
+	const total = $derived(totalValues(filtered, schema));
+	const isFiltered = $derived(
+		!!query ||
+			Object.values(shownRanges).some((r) => r[0] !== null || r[1] !== null) ||
+			advanced.rules.some(isActiveRule)
+	);
+
+	const levelCount = $derived(grouping.length + 1);
+
+	/** Group ids per depth: depth d opens when the level is above d + 1. */
+	const groupIdsByDepth = $derived.by(() => {
+		const out: string[][] = [];
+		const walk = (nodes: Node[], depth: number) => {
+			for (const n of nodes) {
+				if (n.kind !== 'group') continue;
+				(out[depth] ??= []).push(n.id);
+				walk(n.children, depth + 1);
+			}
+		};
+		walk(tree, 0);
+		return out;
+	});
+
+	const openToLevel = (level: number) =>
+		Object.fromEntries(
+			groupIdsByDepth.slice(0, level - 1).flatMap((ids) => ids.map((id) => [id, true]))
+		);
+
+	// Changing the grouping resets the open groups to the top level; otherwise the user's toggles are kept.
+	const view = $derived(grouping.join('/'));
+	let toggled = $state.raw<{ view: string; expanded: ExpandedState } | null>(null);
+	const expanded = $derived<ExpandedState>(
+		toggled?.view === view ? toggled.expanded : openToLevel(2)
+	);
+
+	const features = tableFeatures({
+		rowExpandingFeature,
+		rowSortingFeature,
+		expandedRowModel: createExpandedRowModel(),
+		sortedRowModel: createSortedRowModel(),
+		sortFns: { alphanumeric: sortFn_alphanumeric, basic: sortFn_basic }
+	});
+
+	const nodeLabel = (n: Node) => (n.kind === 'group' ? n.label : schema.label.value(n.row));
+
+	// Cells render from the template, so the defs only feed sorting.
+	const columns = $derived<ColumnDef<typeof features, Node>[]>([
+		{ id: LABEL_ID, accessorFn: nodeLabel, sortFn: 'alphanumeric' },
+		...schema.figures.map((f): ColumnDef<typeof features, Node> => ({
+			id: f.id,
+			accessorFn: (n) => n.values[f.id] ?? undefined,
+			sortFn: 'basic',
+			sortUndefined: 'last',
+			sortDescFirst: true
+		}))
+	]);
+
+	const table = createTable({
+		...DataGrid.GRID_TABLE_DEFAULTS,
+		features,
+		get columns() {
+			return columns;
+		},
+		get data() {
+			return tree;
+		},
+		getRowId: (n) => n.id,
+		getSubRows: (n) => (n.kind === 'group' ? n.children : undefined),
+		state: {
+			get sorting() {
+				return shownSorting;
+			},
+			// A search must reveal every match, so it opens every group.
+			get expanded() {
+				return DataGrid.pinnedExpanded(query, expanded);
+			}
+		},
+		onSortingChange: (updater) => (sorting = functionalUpdate(updater, shownSorting)),
+		onExpandedChange: (updater) => {
+			if (!query) toggled = { view, expanded: functionalUpdate(updater, expanded) };
+		}
+	});
+
+	/** Every visible row in order, across all pages. */
+	const allRows = $derived(table.getRowModel().rows);
+
+	// A new search, filter, grouping or row mode starts again at page 1; within one, the page
+	// holds. Clamped on read, so collapsing groups never strands the view past the last page.
+	const pageKey = $derived(
+		JSON.stringify([query, grouping, shownRanges, advanced.logic, advanced.rules, rowMode])
+	);
+	let page = $state.raw({ key: '', index: 0 });
+	const pageCount = $derived(Math.max(1, Math.ceil(allRows.length / pageSize)));
+	const pageIndex = $derived(page.key === pageKey ? Math.min(page.index, pageCount - 1) : 0);
+	const setPage = (index: number) => (page = { key: pageKey, index });
+	const pageRows = $derived(
+		rowMode === 'paged' ? allRows.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize) : allRows
+	);
+
+	// ── Depth control ────────────────────────────────────────────────────────
+
+	/**
+	 * The level the open groups match, read from the groups on screen now, so ids a filter hid
+	 * do not count: every depth above the level fully open, none below. 0 for a hand-made mix.
+	 */
+	const currentLevel = $derived.by(() => {
+		if (expanded === true) return levelCount;
+		const map = expanded;
+		let level = 1;
+		for (const [d, ids] of groupIdsByDepth.entries()) {
+			const open = ids.filter((id) => map[id]).length;
+			if (open === ids.length && level === d + 1) level = d + 2;
+			else if (open > 0) return 0;
+		}
+		return Math.min(level, levelCount);
+	});
+
+	function setLevel(level: number) {
+		toggled = { view, expanded: level >= levelCount ? true : openToLevel(level) };
+	}
+
+	// ── Virtual window ───────────────────────────────────────────────────────
+
+	let scroller = $state<HTMLDivElement | null>(null);
+	let scrollTop = $state(0);
+	let viewportHeight = $state(0);
+	const rowHeight = $derived(ROW_HEIGHT[density]);
+	const win = $derived(
+		rowMode === 'virtual'
+			? virtualWindow(
+					allRows.length,
+					rowHeight,
+					Math.max(0, scrollTop - headHeight),
+					viewportHeight || height
+				)
+			: { start: 0, end: pageRows.length, before: 0, after: 0 }
+	);
+	const rendered = $derived(pageRows.slice(win.start, win.end));
+
+	// ── Keyboard: a roving cell, arrows to move, Enter or Space to open a group ──
+
+	let active = $state<{ row: string; col: number } | null>(null);
+	const colCount = $derived(figures.length + 1);
+
+	async function focusCell(index: number, col: number) {
+		const rows = pageRows;
+		if (!rows.length) return;
+		const i = Math.max(0, Math.min(rows.length - 1, index));
+		const c = Math.max(0, Math.min(colCount - 1, col));
+		active = { row: rows[i].id, col: c };
+		if (rowMode === 'virtual' && scroller) {
+			const top = headHeight + i * rowHeight;
+			const bottom = top + rowHeight;
+			const visibleBottom = scroller.scrollTop + scroller.clientHeight - rowHeight;
+			if (top - headHeight < scroller.scrollTop) scroller.scrollTop = top - headHeight;
+			else if (bottom > visibleBottom)
+				scroller.scrollTop = bottom - scroller.clientHeight + rowHeight;
+			// The scroll event lands a frame later; render the target row now so it can take focus.
+			scrollTop = scroller.scrollTop;
+		}
+		await tick();
+		scroller
+			?.querySelector<HTMLElement>(`[data-cell="${CSS.escape(`${rows[i].id}|${c}`)}"]`)
+			?.focus({ preventScroll: rowMode === 'paged' ? false : true });
+	}
+
+	function onKeydown(e: KeyboardEvent) {
+		if (!active) return;
+		// A focused button inside a cell handles its own Enter and Space.
+		const onButton = (e.target as HTMLElement).closest('button') !== null;
+		if (onButton && (e.key === 'Enter' || e.key === ' ')) return;
+		const index = pageRows.findIndex((r) => r.id === active!.row);
+		if (index < 0) return;
+		const row = pageRows[index];
+		const step: Record<string, [number, number]> = {
+			ArrowDown: [1, 0],
+			ArrowUp: [-1, 0],
+			PageDown: [10, 0],
+			PageUp: [-10, 0]
+		};
+		if (e.key in step) {
+			e.preventDefault();
+			focusCell(index + step[e.key][0], active.col);
+		} else if (e.key === 'ArrowRight') {
+			e.preventDefault();
+			if (active.col === 0 && row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
+			else focusCell(index, active.col + 1);
+		} else if (e.key === 'ArrowLeft') {
+			e.preventDefault();
+			if (active.col === 0 && row.getIsExpanded()) row.toggleExpanded(false);
+			else focusCell(index, active.col - 1);
+		} else if (e.key === 'Home') {
+			e.preventDefault();
+			focusCell(e.ctrlKey || e.metaKey ? 0 : index, 0);
+		} else if (e.key === 'End') {
+			e.preventDefault();
+			focusCell(e.ctrlKey || e.metaKey ? pageRows.length - 1 : index, colCount - 1);
+		} else if ((e.key === 'Enter' || e.key === ' ') && row.getCanExpand()) {
+			e.preventDefault();
+			row.toggleExpanded();
+		}
+	}
+
+	// The active cell stays the tab stop only while it is on screen. If it scrolls out of the
+	// window, or is filtered or collapsed away, the first rendered row takes over so Tab still
+	// lands in the table.
+	const tabStop = $derived(
+		active && rendered.some((r) => r.id === active!.row)
+			? active
+			: { row: rendered[0]?.id ?? '', col: 0 }
+	);
+	const isTabStop = (rowId: string, col: number) => tabStop.row === rowId && tabStop.col === col;
+
+	/** Tracks focus from inside a cell too, such as a group's expand button. */
+	function onCellFocus(e: FocusEvent) {
+		const cell = (e.target as HTMLElement).closest<HTMLElement>('[data-cell]')?.dataset.cell;
+		if (!cell) return;
+		const at = cell.lastIndexOf('|');
+		active = { row: cell.slice(0, at), col: Number(cell.slice(at + 1)) };
+	}
+
+	// ── Column resize ────────────────────────────────────────────────────────
+
+	const widthOf = (id: string, fallback: number) => widths[id] ?? fallback;
+	const figureWidth = (f: (typeof figures)[number]) => widthOf(f.id, FIGURE_WIDTH[f.kind]);
+	/** An explicit width keeps table-fixed in force, so a column can shrink below its content. */
+	const tableWidth = $derived(figures.reduce((sum, f) => sum + figureWidth(f), labelCol));
+
+	/** Drag a header's right edge. Starts from the width on screen, so the edge follows the pointer. */
+	function startResize(id: string, e: PointerEvent) {
+		const handle = e.currentTarget as HTMLElement;
+		const startWidth = handle.parentElement?.getBoundingClientRect().width ?? 0;
+		const min = id === LABEL_ID ? 120 : 48;
+		const startX = e.clientX;
+		handle.setPointerCapture(e.pointerId);
+		const move = (ev: PointerEvent) =>
+			(widths = {
+				...widths,
+				[id]: Math.round(Math.min(800, Math.max(min, startWidth + ev.clientX - startX)))
+			});
+		// Fires after pointerup and pointercancel alike, so a cancelled touch drag cleans up too.
+		const done = () => {
+			handle.removeEventListener('pointermove', move);
+			handle.removeEventListener('lostpointercapture', done);
+		};
+		handle.addEventListener('pointermove', move);
+		handle.addEventListener('lostpointercapture', done);
+	}
+
+	function resetWidth(id: string) {
+		const rest = { ...widths };
+		delete rest[id];
+		widths = rest;
+	}
+
+	// ── Toolbar helpers ──────────────────────────────────────────────────────
+
+	const sortOf = (id: string): false | 'asc' | 'desc' => {
+		const s = shownSorting.find((x) => x.id === id);
+		return s ? (s.desc ? 'desc' : 'asc') : false;
+	};
+	const setSort = (id: string, dir: false | 'asc' | 'desc') =>
+		(sorting = dir ? [{ id, desc: dir === 'desc' }] : []);
+	const setRange = (id: string, range: [number | null, number | null]) =>
+		(ranges = { ...ranges, [id]: range });
+
+	const filterFields = $derived<FilterField[]>([
+		{ id: LABEL_ID, label: schema.label.header, type: 'text' },
+		...schema.dimensions.map((d) => ({ id: d.id, label: d.label, type: 'text' as const })),
+		...schema.figures.map((f) => ({ id: f.id, label: `${f.band}: ${f.header}`, type: f.kind }))
+	]);
+
+	function exportCsv() {
+		if (!exportFileName) return;
+		const leaves = table
+			.getSortedRowModel()
+			.flatRows.map((r) => r.original)
+			.filter((n): n is Extract<Node, { kind: 'leaf' }> => n.kind === 'leaf')
+			.map((n) => n.row);
+		download(exportFileName, toCsv(leaves, schema, figures));
+	}
+
+	// ── Cell styling ─────────────────────────────────────────────────────────
+
+	const HOVER_SHADE = 'bg-[color-mix(in_oklab,var(--color-foreground)_7%,var(--color-background))]';
+	const ROW_HOVER =
+		'group-hover/row:bg-[color-mix(in_oklab,var(--color-foreground)_5%,var(--color-background))]';
+	const bandStart = $derived(new Set(headerBands.map((b) => b.figures[0].id)));
+	const shadedBand = $derived(
+		new Set(headerBands.flatMap((b, i) => (i % 2 ? b.figures.map((f) => f.id) : [])))
+	);
+	const FOCUS_RING =
+		'outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset';
+
+	/**
+	 * Class strings per figure column, built once per column set rather than merged per cell.
+	 * Each part has a plain and a hovered form, never both tints at once.
+	 */
+	const colClass = $derived(
+		Object.fromEntries(
+			figures.map((f) => {
+				const edge = bandStart.has(f.id) ? ' border-l' : '';
+				const alt = shadedBand.has(f.id);
+				const body = `relative overflow-hidden border-b px-2 text-end text-ellipsis whitespace-nowrap tabular-nums ${FOCUS_RING}${edge}`;
+				const head = `sticky top-8 z-20 border-b px-2 text-end align-bottom font-medium${edge}`;
+				const foot = `sticky bottom-0 z-20 overflow-hidden border-t px-2 text-end font-semibold text-ellipsis whitespace-nowrap tabular-nums${edge}`;
+				return [
+					f.id,
+					{
+						body: `${body} ${alt ? ALT_BAND_BODY : 'bg-background'} ${ROW_HOVER}`,
+						bodyHover: `${body} ${HOVER_SHADE}`,
+						head: `${head} ${alt ? ALT_BAND_HEADER : 'bg-muted'}`,
+						headHover: `${head} ${HOVER_SHADE}`,
+						foot: `${foot} bg-muted`,
+						footHover: `${foot} ${HOVER_SHADE}`
+					}
+				];
+			})
+		)
+	);
+
+	/** Text colour for a figure cell: red when negative, stronger on a group row. */
+	const tone = (v: number | null, group: boolean) =>
+		v !== null && v < 0 ? ' text-destructive' : group ? ' font-medium text-foreground' : '';
+
+	const ariaSort = { asc: 'ascending', desc: 'descending' } as const;
+</script>
+
+{#snippet resizer(id: string, label: string)}
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<span
+		class="absolute inset-y-0 right-0 z-10 w-1.5 cursor-col-resize touch-none hover:bg-ring/40"
+		title="Resize {label}. Double-click to reset."
+		onpointerdown={(e) => startResize(id, e)}
+		ondblclick={() => resetWidth(id)}
+	></span>
+{/snippet}
+
+<DataGrid.Panel class={cn('flex min-w-0 flex-col gap-3', className)}>
+	<div class="flex flex-wrap items-center justify-between gap-2">
+		<DataGrid.Search placeholder={searchPlaceholder} bind:value={search} class="sm:max-w-xs" />
+		<div class="flex flex-wrap items-center gap-2">
+			{#if grouping.length}
+				<DataGrid.DepthMenu
+					{levelCount}
+					level={currentLevel}
+					onLevelChange={setLevel}
+					disabled={Boolean(query)}
+				/>
+			{/if}
+			<GroupMenu dimensions={schema.dimensions} {grouping} onChange={(g) => (grouping = g)} />
+			<ColumnMenu figures={schema.figures} {shown} onChange={setShown} />
+			<FilterPanel fields={filterFields} value={advanced} onChange={(v) => (advanced = v)} />
+			<Popover.Root>
+				<Popover.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline" size="sm">
+							<SlidersHorizontalIcon data-icon="inline-start" />
+							Display
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content align="end" class="flex w-72 flex-col gap-3 p-3">
+					<Field.Field orientation="horizontal">
+						<Field.Label for="matrix-density">Density</Field.Label>
+						<DataGrid.DensitySelect id="matrix-density" align="end" bind:value={density} />
+					</Field.Field>
+					<Field.Field orientation="horizontal">
+						<Field.Label>Rows</Field.Label>
+						<ToggleGroup.Root
+							type="single"
+							variant="outline"
+							size="sm"
+							value={rowMode}
+							onValueChange={(v) => v && (rowMode = v as typeof rowMode)}
+							aria-label="Rows"
+						>
+							<ToggleGroup.Item value="virtual">Scroll</ToggleGroup.Item>
+							<ToggleGroup.Item value="paged">Pages</ToggleGroup.Item>
+						</ToggleGroup.Root>
+					</Field.Field>
+				</Popover.Content>
+			</Popover.Root>
+			{#if exportFileName}
+				<Button variant="outline" size="sm" onclick={exportCsv}>
+					<DownloadIcon data-icon="inline-start" />
+					Export
+				</Button>
+			{/if}
+		</div>
+	</div>
+
+	{#if isFiltered}
+		<p class="-mt-1 text-xs text-muted-foreground">
+			{filtered.length} of {data.length} rows match. Totals cover only these rows.
+		</p>
+	{/if}
+
+	<DataGrid.Viewport>
+		<div
+			bind:this={scroller}
+			bind:clientHeight={viewportHeight}
+			bind:clientWidth={viewportWidth}
+			class="relative overflow-auto overscroll-contain"
+			style:max-height="{height}px"
+			onscroll={(e) => (scrollTop = e.currentTarget.scrollTop)}
+		>
+			<table
+				class="min-w-full table-fixed border-separate border-spacing-0 text-xs"
+				style:width="{tableWidth}px"
+				role={grouping.length ? 'treegrid' : undefined}
+				aria-rowcount={allRows.length + headRows + 1}
+				onpointerover={(e) =>
+					(hoverCol =
+						(e.target as HTMLElement).closest<HTMLElement>('[data-col]')?.dataset.col ?? null)}
+				onpointerleave={() => (hoverCol = null)}
+			>
+				<colgroup>
+					<col style:width="{labelCol}px" />
+					{#each figures as f (f.id)}
+						<col style:width="{figureWidth(f)}px" />
+					{/each}
+					<!-- Takes the spare width, so table-fixed never stretches a sized column. -->
+					<col />
+				</colgroup>
+
+				<thead class="text-muted-foreground">
+					<tr class="h-8">
+						<th
+							rowspan={figures.length ? 2 : 1}
+							scope="col"
+							class="sticky top-0 left-0 z-30 border-r border-b bg-muted px-3 text-start align-bottom font-medium"
+							style:padding-bottom="0.5rem"
+						>
+							<HeaderMenu
+								label={schema.label.header}
+								align="start"
+								sorted={sortOf(LABEL_ID)}
+								onSort={(dir) => setSort(LABEL_ID, dir)}
+							/>
+							{@render resizer(LABEL_ID, schema.label.header)}
+						</th>
+						{#each headerBands as b, i (b.band + i)}
+							<th
+								colspan={b.figures.length}
+								scope="colgroup"
+								class={cn(
+									'sticky top-0 z-20 truncate border-b border-l px-2 text-center font-medium text-foreground',
+									i % 2 ? ALT_BAND_HEADER : 'bg-muted'
+								)}
+							>
+								{b.band}
+							</th>
+						{/each}
+						<th rowspan={headRows} aria-hidden="true" class="sticky top-0 z-20 border-b bg-muted"
+						></th>
+					</tr>
+					{#if figures.length}
+						<tr class="h-10">
+							{#each figures as f (f.id)}
+								<th
+									scope="col"
+									data-col={f.id}
+									aria-sort={sortOf(f.id) ? ariaSort[sortOf(f.id) || 'asc'] : undefined}
+									class={hoverCol === f.id ? colClass[f.id].headHover : colClass[f.id].head}
+									style:padding-bottom="0.375rem"
+								>
+									<HeaderMenu
+										label={f.header}
+										sorted={sortOf(f.id)}
+										range={ranges[f.id] ?? [null, null]}
+										percent={f.kind === 'percent'}
+										onSort={(dir) => setSort(f.id, dir)}
+										onRange={(r) => setRange(f.id, r)}
+										onHide={() => setShown(shown.filter((id) => id !== f.id))}
+									/>
+									{@render resizer(f.id, f.header)}
+								</th>
+							{/each}
+						</tr>
+					{/if}
+				</thead>
+
+				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+				<tbody onkeydown={onKeydown}>
+					{#if win.before}
+						<tr aria-hidden="true" style:height="{win.before}px"
+							><td colspan={colCount + 1}></td></tr
+						>
+					{/if}
+					{#each rendered as row, i (row.id)}
+						{@const n = row.original}
+						<tr
+							class="group/row"
+							style:height="{rowHeight}px"
+							aria-rowindex={(rowMode === 'paged' ? pageIndex * pageSize : win.start) +
+								i +
+								headRows +
+								1}
+							aria-level={row.depth + 1}
+							aria-expanded={n.kind === 'group' ? row.getIsExpanded() : undefined}
+						>
+							<td
+								data-cell="{row.id}|0"
+								tabindex={isTabStop(row.id, 0) ? 0 : -1}
+								onfocusin={onCellFocus}
+								class={cn(
+									'sticky left-0 z-10 overflow-hidden border-r border-b bg-background px-3 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset',
+									ROW_HOVER
+								)}
+							>
+								<div
+									class="flex min-w-0 items-center gap-1.5"
+									style:padding-inline-start="{row.depth * 1.125}rem"
+								>
+									{#if n.kind === 'group'}
+										<DataGrid.RowToggle
+											expanded={row.getIsExpanded()}
+											label={row.getIsExpanded() ? `Collapse ${n.label}` : `Expand ${n.label}`}
+											tabindex={-1}
+											onclick={row.getToggleExpandedHandler()}
+										/>
+										<span class="truncate font-medium text-foreground">{n.label}</span>
+										<span class="shrink-0 text-muted-foreground tabular-nums">{n.count}</span>
+									{:else}
+										{#if grouping.length}
+											<span class="-ms-1.5 size-5 shrink-0" aria-hidden="true"></span>
+										{/if}
+										<span class="truncate text-foreground">{schema.label.value(n.row)}</span>
+										{#if schema.label.detail}
+											<span class="truncate text-muted-foreground"
+												>{schema.label.detail(n.row)}</span
+											>
+										{/if}
+									{/if}
+								</div>
+							</td>
+							{#each figures as f, c (f.id)}
+								{@const v = n.values[f.id] ?? null}
+								<td
+									data-col={f.id}
+									data-cell="{row.id}|{c + 1}"
+									tabindex={isTabStop(row.id, c + 1) ? 0 : -1}
+									onfocusin={onCellFocus}
+									class={(hoverCol === f.id ? colClass[f.id].bodyHover : colClass[f.id].body) +
+										tone(v, n.kind === 'group')}
+								>
+									{formatFigure(f, v)}
+								</td>
+							{/each}
+							<td aria-hidden="true" class="border-b bg-background {ROW_HOVER}"></td>
+						</tr>
+					{:else}
+						<tr>
+							<td colspan={colCount + 1} class="h-24 text-center text-muted-foreground">
+								No rows match.
+							</td>
+						</tr>
+					{/each}
+					{#if win.after}
+						<tr aria-hidden="true" style:height="{win.after}px"><td colspan={colCount + 1}></td></tr
+						>
+					{/if}
+				</tbody>
+
+				<tfoot>
+					<tr style:height="{rowHeight}px">
+						<td
+							class="sticky bottom-0 left-0 z-30 border-t border-r bg-muted px-3 font-semibold whitespace-nowrap"
+						>
+							{totalLabel}
+							<span class="ml-1 font-normal text-muted-foreground tabular-nums">
+								{filtered.length} rows
+							</span>
+						</td>
+						{#each figures as f (f.id)}
+							<td
+								data-col={f.id}
+								class={(hoverCol === f.id ? colClass[f.id].footHover : colClass[f.id].foot) +
+									tone(total[f.id] ?? null, false)}
+							>
+								{formatFigure(f, total[f.id] ?? null)}
+							</td>
+						{/each}
+						<td aria-hidden="true" class="sticky bottom-0 z-20 border-t bg-muted"></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</DataGrid.Viewport>
+
+	{#if rowMode === 'paged'}
+		<DataGrid.Pagination
+			{pageIndex}
+			{pageSize}
+			rowCount={allRows.length}
+			{pageSizes}
+			onPageChange={setPage}
+			onPageSizeChange={(size) => {
+				pageSize = size;
+				setPage(0);
+			}}
+		/>
+	{/if}
+</DataGrid.Panel>

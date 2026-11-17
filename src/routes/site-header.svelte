@@ -14,10 +14,14 @@
 
 	let menuOpen = $state(false);
 
+	// The index and every item page sit in the (docs) group, so Components covers them all.
+	const isActive = (route: string) =>
+		route === '/' ? !!page.route.id?.startsWith('/(docs)') : page.route.id === route;
+
 	const linkClass = (route: string) =>
 		cn(
-			'rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground',
-			page.route.id === route && 'font-medium text-foreground'
+			'rounded-md px-2 py-1 text-xs whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground',
+			isActive(route) && 'font-medium text-foreground'
 		);
 </script>
 
@@ -48,7 +52,7 @@
 				</div>
 			</Sheet.Content>
 		</Sheet.Root>
-		<a href={resolve('/')} class="flex items-center gap-2">
+		<a href={resolve('/(docs)')} class="flex items-center gap-2">
 			<span
 				class="flex size-6 items-center justify-center rounded-md bg-primary font-mono text-[0.625rem] font-semibold text-primary-foreground"
 			>
@@ -59,19 +63,19 @@
 		<Separator orientation="vertical" class="hidden h-4! sm:block" />
 		<nav class="flex items-center gap-0.5" aria-label="Pages">
 			<a
-				href={resolve('/')}
-				aria-current={page.route.id === '/' ? 'page' : undefined}
+				href={resolve('/(docs)')}
+				aria-current={isActive('/') ? 'page' : undefined}
 				class={linkClass('/')}>Components</a
 			>
 			<!-- /blocks and /sink set trailingSlash: 'always', so link straight to the folder index. -->
 			<a
 				href="{resolve('/blocks')}/"
-				aria-current={page.route.id === '/blocks' ? 'page' : undefined}
+				aria-current={isActive('/blocks') ? 'page' : undefined}
 				class={linkClass('/blocks')}>Blocks</a
 			>
 			<a
 				href="{resolve('/sink')}/"
-				aria-current={page.route.id === '/sink' ? 'page' : undefined}
+				aria-current={isActive('/sink') ? 'page' : undefined}
 				class={linkClass('/sink')}>Kitchen sink</a
 			>
 		</nav>

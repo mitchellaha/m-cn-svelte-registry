@@ -4,6 +4,7 @@ import Dashboard01Demo from '$lib/registry/blocks/dashboard-01/dashboard-01-demo
 import BomTreeGridDemo from '$lib/registry/blocks/bom-tree-grid/bom-tree-grid-demo.svelte';
 import CommandPaletteDemo from '$lib/registry/blocks/command-palette/command-palette-demo.svelte';
 import FeatureMenuDemo from '$lib/registry/blocks/feature-menu/feature-menu-demo.svelte';
+import MatrixGridDemo from '$lib/registry/blocks/matrix-grid/matrix-grid-demo.svelte';
 import MetricLedgerDemo from '$lib/registry/blocks/metric-ledger/metric-ledger-demo.svelte';
 import ScopeSwitcherDemo from '$lib/registry/blocks/scope-switcher/scope-switcher-demo.svelte';
 import TreasuryWaterfallGridDemo from '$lib/registry/blocks/treasury-waterfall-grid/treasury-waterfall-grid-demo.svelte';
@@ -39,6 +40,7 @@ export const demos: Record<string, Demo> = {
 	'command-palette': { component: CommandPaletteDemo, height: 540, padded: true },
 	'app-header': { component: AppHeaderDemo, height: 640, padded: true },
 	'metric-ledger': { component: MetricLedgerDemo, height: 520, padded: true },
+	'matrix-grid': { component: MatrixGridDemo, height: 760, padded: true },
 	'dashboard-01': { component: Dashboard01Demo, height: 1400, padded: false }
 };
 

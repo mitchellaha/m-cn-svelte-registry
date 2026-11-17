@@ -29,7 +29,7 @@
 						class="mb-4 flex min-w-0 scroll-mt-16 break-inside-avoid flex-col overflow-hidden rounded-lg border bg-background"
 					>
 						<a
-							href="{resolve('/')}#{item.name}"
+							href="{resolve('/(docs)/components/[name]', { name: item.name })}/"
 							class="group flex items-center justify-between gap-2 border-b px-3 py-2 text-xs"
 						>
 							<span class="font-medium">{item.title}</span>

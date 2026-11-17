@@ -54,6 +54,10 @@
 			"registryDependencies": ["button", "button-group", "dropdown-menu", "input-group", "select"],
 			"files": [
 				{
+					"path": "src/lib/registry/ui/data-grid/pagination.svelte",
+					"type": "registry:ui"
+				},
+				{
 					"path": "src/lib/registry/ui/data-grid/panel.svelte",
 					"type": "registry:ui"
 				},
@@ -503,6 +507,72 @@
 					"path": "src/lib/registry/blocks/metric-ledger/sparkline.svelte",
 					"type": "registry:component",
 					"target": "metric-ledger/sparkline.svelte"
+				}
+			]
+		},
+		{
+			"name": "matrix-grid",
+			"type": "registry:block",
+			"title": "Matrix Grid",
+			"description": "A grouped figures grid. Rows roll up under the dimensions you pick, figure columns sit under header bands, and group totals sum money and divide sums for rates. Column and group pickers, sort, per-column ranges, an advanced filter, search, row and column hover, a pinned label column, sticky header and total row, CSV export, and paged or virtual scrolling rows. Ships with a demo data file you can delete.",
+			"dependencies": ["@tanstack/svelte-table", "@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"badge",
+				"button",
+				"dropdown-menu",
+				"field",
+				"input",
+				"popover",
+				"select",
+				"toggle-group",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/data-grid.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/matrix-grid.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/matrix-grid.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/matrix-grid-demo.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/matrix-grid-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/matrix-grid-data.ts",
+					"type": "registry:component",
+					"target": "matrix-grid/matrix-grid-data.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/types.ts",
+					"type": "registry:component",
+					"target": "matrix-grid/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/matrix.ts",
+					"type": "registry:component",
+					"target": "matrix-grid/matrix.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/group-menu.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/group-menu.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/column-menu.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/column-menu.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/filter-panel.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/filter-panel.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/matrix-grid/header-menu.svelte",
+					"type": "registry:component",
+					"target": "matrix-grid/header-menu.svelte"
 				}
 			]
 		},
