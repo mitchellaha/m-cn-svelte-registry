@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { Snippet } from 'svelte';
 	import type { SortingState } from '@tanstack/svelte-table';
 	import type { MatrixSchema, RowMode } from './types.js';
 
@@ -27,6 +28,18 @@
 		totalLabel?: string;
 		/** CSV export file name. False hides the export button. */
 		exportFileName?: string | false;
+		/** Adds a pinned checkbox column at the far left. */
+		selectable?: boolean;
+		/** Selected row ids (`schema.rowId`). Bindable. Rows a filter hides stay selected. */
+		selected?: string[];
+		/** Bulk actions in the selection bar; receives the selected rows. */
+		selectionActions?: Snippet<[T[]]>;
+		/** Items for a row's menu (`DropdownMenu.Item` and friends). Adds a pinned menu column. */
+		rowActions?: Snippet<[T]>;
+		/** Items for a group row's menu; receives its label and the matching rows under it. */
+		groupActions?: Snippet<[{ label: string; rows: T[] }]>;
+		/** Edge the menu column pins to: after the figures, or beside the label. Default 'end'. */
+		actionsSide?: 'start' | 'end';
 		class?: string;
 	};
 </script>
@@ -47,8 +60,11 @@
 		tableFeatures
 	} from '@tanstack/svelte-table';
 	import DownloadIcon from '@lucide/svelte/icons/download';
+	import EllipsisIcon from '@lucide/svelte/icons/ellipsis';
 	import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 	import { Button } from '#lib/components/ui/button/index.js';
+	import { Checkbox } from '#lib/components/ui/checkbox/index.js';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import * as Popover from '#lib/components/ui/popover/index.js';
 	import { Switch } from '#lib/components/ui/switch/index.js';
@@ -92,12 +108,22 @@
 		searchPlaceholder = 'Search...',
 		totalLabel = 'Total',
 		exportFileName = 'matrix.csv',
+		selectable = false,
+		selected = $bindable([]),
+		selectionActions,
+		rowActions,
+		groupActions,
+		actionsSide = 'end',
 		class: className
 	}: MatrixGridProps<T> = $props();
 
 	type Node = MatrixNode<T>;
 
 	const LABEL_WIDTH = 280;
+	const SELECT_WIDTH = 36;
+	const ACTIONS_WIDTH = 40;
+	const SELECT_ID = '__select';
+	const ACTIONS_ID = '__actions';
 
 	// The default* props only seed state; the toolbar owns it after load.
 	let search = $state('');
@@ -133,7 +159,50 @@
 	const shownSorting = $derived(sorting.filter((s) => s.id === LABEL_ID || shown.includes(s.id)));
 
 	const filtered = $derived(filterRows(data, schema, { query, ranges: shownRanges, advanced }));
+
+	// ── Selection and the menu column ────────────────────────────────────────
+
+	const hasActions = $derived(!!rowActions || !!groupActions);
+	const selectW = $derived(selectable ? SELECT_WIDTH : 0);
+	const actionsW = $derived(hasActions ? ACTIONS_WIDTH : 0);
+	const selectedSet = $derived(new Set(selected));
+	const selectedRows = $derived(data.filter((r) => selectedSet.has(schema.rowId(r))));
+	const hiddenSelected = $derived(
+		selectedRows.length - filtered.filter((r) => selectedSet.has(schema.rowId(r))).length
+	);
+
+	/** Whether all, some or none of `rows` are selected. */
+	function selection(rows: readonly T[]): boolean | 'some' {
+		let n = 0;
+		for (const r of rows) if (selectedSet.has(schema.rowId(r))) n++;
+		return n === 0 ? false : n === rows.length ? true : 'some';
+	}
+
+	function selectRows(rows: readonly T[], on: boolean) {
+		const ids = rows.map((r) => schema.rowId(r));
+		if (on) {
+			const have = new Set(selected);
+			selected = [...selected, ...ids.filter((id) => !have.has(id))];
+		} else {
+			const drop = new Set(ids);
+			selected = selected.filter((id) => !drop.has(id));
+		}
+	}
 	const tree = $derived(buildTree(filtered, schema, grouping));
+	/** The matching rows under each group id, for its checkbox and its menu. */
+	const leavesOf = $derived.by(() => {
+		const out: Record<string, T[]> = {};
+		const walk = (nodes: Node[]): T[] => {
+			const rows: T[] = [];
+			for (const n of nodes) {
+				if (n.kind === 'leaf') rows.push(n.row);
+				else rows.push(...(out[n.id] = walk(n.children)));
+			}
+			return rows;
+		};
+		walk(tree);
+		return out;
+	});
 	const total = $derived(totalValues(filtered, schema));
 	const isFiltered = $derived(
 		!!query ||
@@ -260,6 +329,9 @@
 	let scroller = $state<HTMLDivElement | null>(null);
 	let scrollTop = $state(0);
 	let viewportHeight = $state(0);
+	let scrollerHeight = $state(0);
+	/** Height of the horizontal scrollbar under the total row, when there is one. */
+	const scrollbarHeight = $derived(Math.max(0, scrollerHeight - viewportHeight));
 	const rowHeight = $derived(ROW_HEIGHT[density]);
 	const win = $derived(
 		rowMode === 'virtual'
@@ -276,7 +348,16 @@
 	// ── Keyboard: a roving cell, arrows to move, Enter or Space to open a group ──
 
 	let active = $state<{ row: string; col: number } | null>(null);
-	const colCount = $derived(figures.length + 1);
+	/** Every cell column in screen order; a cell's index here is its keyboard column. */
+	const colKeys = $derived([
+		...(selectable ? [SELECT_ID] : []),
+		LABEL_ID,
+		...(hasActions && actionsSide === 'start' ? [ACTIONS_ID] : []),
+		...figures.map((f) => f.id),
+		...(hasActions && actionsSide === 'end' ? [ACTIONS_ID] : [])
+	]);
+	const colCount = $derived(colKeys.length);
+	const colOf = (key: string) => colKeys.indexOf(key);
 
 	async function focusCell(index: number, col: number) {
 		const rows = pageRows;
@@ -314,16 +395,32 @@
 			PageDown: [10, 0],
 			PageUp: [-10, 0]
 		};
+		const key = colKeys[active.col];
+		if ((e.key === 'Enter' || e.key === ' ') && key === SELECT_ID) {
+			e.preventDefault();
+			const n = row.original;
+			const rows = n.kind === 'leaf' ? [n.row] : (leavesOf[n.id] ?? []);
+			selectRows(rows, selection(rows) !== true);
+			return;
+		}
+		if ((e.key === 'Enter' || e.key === ' ') && key === ACTIONS_ID) {
+			e.preventDefault();
+			// The menu opens from its trigger's own key handling.
+			const trigger = (e.target as HTMLElement).closest('td')?.querySelector('button');
+			trigger?.focus();
+			trigger?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+			return;
+		}
 		if (e.key in step) {
 			e.preventDefault();
 			focusCell(index + step[e.key][0], active.col);
 		} else if (e.key === 'ArrowRight') {
 			e.preventDefault();
-			if (active.col === 0 && row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
+			if (key === LABEL_ID && row.getCanExpand() && !row.getIsExpanded()) row.toggleExpanded(true);
 			else focusCell(index, active.col + 1);
 		} else if (e.key === 'ArrowLeft') {
 			e.preventDefault();
-			if (active.col === 0 && row.getIsExpanded()) row.toggleExpanded(false);
+			if (key === LABEL_ID && row.getIsExpanded()) row.toggleExpanded(false);
 			else focusCell(index, active.col - 1);
 		} else if (e.key === 'Home') {
 			e.preventDefault();
@@ -367,9 +464,11 @@
 	/** Every column at its own width, before any stretch. */
 	const baseTotal = $derived(figures.reduce((sum, f) => sum + figureWidth(f), labelCol));
 	/** With Fit width on and room to spare, every column grows by this factor to fill the grid. */
-	const stretch = $derived(fitWidth && viewportWidth > baseTotal ? viewportWidth / baseTotal : 1);
+	/** Width the stretchable columns share: the grid less the fixed checkbox and menu columns. */
+	const room = $derived(viewportWidth - selectW - actionsW);
+	const stretch = $derived(fitWidth && room > baseTotal ? room / baseTotal : 1);
 	/** An explicit width keeps table-fixed in force, so a column can shrink below its content. */
-	const tableWidth = $derived(baseTotal * stretch);
+	const tableWidth = $derived(baseTotal * stretch + selectW + actionsW);
 
 	/** Drag a header's right edge. Starts from the width on screen, so the edge follows the pointer. */
 	function startResize(id: string, e: PointerEvent) {
@@ -383,7 +482,6 @@
 			// While fitted, solve for the share whose stretched width is `target`, so the edge stays
 			// under the pointer and the other columns give way. Past the grid's width, no stretch.
 			const others = baseTotal - baseOf(id);
-			const room = viewportWidth;
 			const base =
 				fitWidth && target + others < room ? (target * others) / (room - target) : target;
 			widths = { ...widths, [id]: Math.round(base * 10) / 10 };
@@ -420,14 +518,19 @@
 		...schema.figures.map((f) => ({ id: f.id, label: `${f.band}: ${f.header}`, type: f.kind }))
 	]);
 
-	function exportCsv() {
+	/** Writes the matching rows in grid order, or only the selected ones (matching or not). */
+	function exportCsv(onlySelected = false) {
 		if (!exportFileName) return;
 		const leaves = table
 			.getSortedRowModel()
 			.flatRows.map((r) => r.original)
 			.filter((n): n is Extract<Node, { kind: 'leaf' }> => n.kind === 'leaf')
 			.map((n) => n.row);
-		download(exportFileName, toCsv(leaves, schema, figures));
+		if (!onlySelected) return download(exportFileName, toCsv(leaves, schema, figures));
+		const inGrid = leaves.filter((r) => selectedSet.has(schema.rowId(r)));
+		const shownIds = new Set(inGrid.map((r) => schema.rowId(r)));
+		const rest = selectedRows.filter((r) => !shownIds.has(schema.rowId(r)));
+		download(exportFileName, toCsv([...inGrid, ...rest], schema, figures));
 	}
 
 	// ── Cell styling ─────────────────────────────────────────────────────────
@@ -435,6 +538,10 @@
 	const HOVER_SHADE = 'bg-[color-mix(in_oklab,var(--color-foreground)_7%,var(--color-background))]';
 	const ROW_HOVER =
 		'group-hover/row:bg-[color-mix(in_oklab,var(--color-foreground)_5%,var(--color-background))]';
+	const SELECTED_SHADE = 'bg-[color-mix(in_oklab,var(--color-primary)_8%,var(--color-background))]';
+	/** Background for the label, checkbox and menu cells of a row. */
+	const rowBg = (isSelected: boolean) =>
+		isSelected ? SELECTED_SHADE : `bg-background ${ROW_HOVER}`;
 	const bandStart = $derived(new Set(headerBands.map((b) => b.figures[0].id)));
 	const shadedBand = $derived(
 		new Set(headerBands.flatMap((b, i) => (i % 2 ? b.figures.map((f) => f.id) : [])))
@@ -458,6 +565,7 @@
 					f.id,
 					{
 						body: `${body} ${alt ? ALT_BAND_BODY : 'bg-background'} ${ROW_HOVER}`,
+						bodySelected: `${body} ${SELECTED_SHADE}`,
 						bodyHover: `${body} ${HOVER_SHADE}`,
 						head: `${head} ${alt ? ALT_BAND_HEADER : 'bg-muted'}`,
 						headHover: `${head} ${HOVER_SHADE}`,
@@ -484,6 +592,45 @@
 		onpointerdown={(e) => startResize(id, e)}
 		ondblclick={() => resetWidth(id)}
 	></span>
+{/snippet}
+
+{#snippet checkbox(rows: T[], label: string)}
+	{@const state = selection(rows)}
+	<Checkbox
+		tabindex={-1}
+		checked={state === true}
+		indeterminate={state === 'some'}
+		disabled={rows.length === 0}
+		aria-label="Select {label}"
+		onCheckedChange={(on) => selectRows(rows, on)}
+	/>
+{/snippet}
+
+{#snippet menu(n: Node)}
+	{#if n.kind === 'leaf' ? rowActions : groupActions}
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant="ghost"
+						size="icon-xs"
+						tabindex={-1}
+						aria-label="Actions for {nodeLabel(n)}"
+					>
+						<EllipsisIcon />
+					</Button>
+				{/snippet}
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content align={actionsSide === 'end' ? 'end' : 'start'} class="min-w-48">
+				{#if n.kind === 'leaf'}
+					{@render rowActions?.(n.row)}
+				{:else}
+					{@render groupActions?.({ label: n.label, rows: leavesOf[n.id] ?? [] })}
+				{/if}
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+	{/if}
 {/snippet}
 
 <DataGrid.Panel class={cn('flex min-w-0 flex-col gap-3', className)}>
@@ -535,8 +682,25 @@
 					</Field.Field>
 				</Popover.Content>
 			</Popover.Root>
-			{#if exportFileName}
-				<Button variant="outline" size="sm" onclick={exportCsv}>
+			{#if exportFileName && selected.length}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								<DownloadIcon data-icon="inline-start" />
+								Export
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end">
+						<DropdownMenu.Item onSelect={() => exportCsv(false)}>Matching rows</DropdownMenu.Item>
+						<DropdownMenu.Item onSelect={() => exportCsv(true)}>
+							Selected rows ({selected.length})
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{:else if exportFileName}
+				<Button variant="outline" size="sm" onclick={() => exportCsv()}>
 					<DownloadIcon data-icon="inline-start" />
 					Export
 				</Button>
@@ -550,10 +714,11 @@
 		</p>
 	{/if}
 
-	<DataGrid.Viewport>
+	<DataGrid.Viewport class="relative">
 		<div
 			bind:this={scroller}
 			bind:clientHeight={viewportHeight}
+			bind:offsetHeight={scrollerHeight}
 			bind:clientWidth={viewportWidth}
 			class="relative overflow-auto overscroll-contain"
 			style:max-height="{height}px"
@@ -570,20 +735,34 @@
 				onpointerleave={() => (hoverCol = null)}
 			>
 				<colgroup>
+					{#if selectable}<col style:width="{SELECT_WIDTH}px" />{/if}
 					<col style:width="{labelCol * stretch}px" />
+					{#if hasActions && actionsSide === 'start'}<col style:width="{ACTIONS_WIDTH}px" />{/if}
 					{#each figures as f (f.id)}
 						<col style:width="{figureWidth(f) * stretch}px" />
 					{/each}
 					<!-- Takes the spare width, so table-fixed never stretches a sized column. -->
 					<col />
+					{#if hasActions && actionsSide === 'end'}<col style:width="{ACTIONS_WIDTH}px" />{/if}
 				</colgroup>
 
 				<thead class="text-muted-foreground">
 					<tr class="h-8">
+						{#if selectable}
+							<th
+								rowspan={headRows}
+								scope="col"
+								class="sticky top-0 left-0 z-30 border-b bg-muted px-2.5 align-bottom"
+								style:padding-bottom="0.625rem"
+							>
+								{@render checkbox(filtered, 'all matching rows')}
+							</th>
+						{/if}
 						<th
-							rowspan={figures.length ? 2 : 1}
+							rowspan={headRows}
 							scope="col"
-							class="sticky top-0 left-0 z-30 border-r border-b bg-muted px-3 text-start align-bottom font-medium"
+							class="sticky top-0 z-30 border-r border-b bg-muted px-3 text-start align-bottom font-medium"
+							style:left="{selectW}px"
 							style:padding-bottom="0.5rem"
 						>
 							<HeaderMenu
@@ -594,6 +773,16 @@
 							/>
 							{@render resizer(LABEL_ID, schema.label.header)}
 						</th>
+						{#if hasActions && actionsSide === 'start'}
+							<th
+								rowspan={headRows}
+								scope="col"
+								class="sticky top-0 z-30 border-r border-b bg-muted"
+								style:left="{selectW + labelCol * stretch}px"
+							>
+								<span class="sr-only">Actions</span>
+							</th>
+						{/if}
 						{#each headerBands as b, i (b.band + i)}
 							<th
 								colspan={b.figures.length}
@@ -608,6 +797,15 @@
 						{/each}
 						<th rowspan={headRows} aria-hidden="true" class="sticky top-0 z-20 border-b bg-muted"
 						></th>
+						{#if hasActions && actionsSide === 'end'}
+							<th
+								rowspan={headRows}
+								scope="col"
+								class="sticky top-0 right-0 z-30 border-b border-l bg-muted"
+							>
+								<span class="sr-only">Actions</span>
+							</th>
+						{/if}
 					</tr>
 					{#if figures.length}
 						<tr class="h-10">
@@ -644,8 +842,10 @@
 					{/if}
 					{#each rendered as row, i (row.id)}
 						{@const n = row.original}
+						{@const isSelected = n.kind === 'leaf' && selectedSet.has(n.id)}
 						<tr
 							class="group/row"
+							aria-selected={selectable && n.kind === 'leaf' ? isSelected : undefined}
 							style:height="{rowHeight}px"
 							aria-rowindex={(rowMode === 'paged' ? pageIndex * pageSize : win.start) +
 								i +
@@ -654,14 +854,27 @@
 							aria-level={row.depth + 1}
 							aria-expanded={n.kind === 'group' ? row.getIsExpanded() : undefined}
 						>
+							{#if selectable}
+								<td
+									data-cell="{row.id}|{colOf(SELECT_ID)}"
+									tabindex={isTabStop(row.id, colOf(SELECT_ID)) ? 0 : -1}
+									onfocusin={onCellFocus}
+									class="sticky left-0 z-10 border-b px-2.5 {FOCUS_RING} {rowBg(isSelected)}"
+								>
+									{@render checkbox(
+										n.kind === 'leaf' ? [n.row] : (leavesOf[n.id] ?? []),
+										nodeLabel(n)
+									)}
+								</td>
+							{/if}
 							<td
-								data-cell="{row.id}|0"
-								tabindex={isTabStop(row.id, 0) ? 0 : -1}
+								data-cell="{row.id}|{colOf(LABEL_ID)}"
+								tabindex={isTabStop(row.id, colOf(LABEL_ID)) ? 0 : -1}
 								onfocusin={onCellFocus}
-								class={cn(
-									'sticky left-0 z-10 overflow-hidden border-r border-b bg-background px-3 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset',
-									ROW_HOVER
-								)}
+								class="sticky z-10 overflow-hidden border-r border-b px-3 whitespace-nowrap {FOCUS_RING} {rowBg(
+									isSelected
+								)}"
+								style:left="{selectW}px"
 							>
 								<div
 									class="flex min-w-0 items-center gap-1.5"
@@ -689,20 +902,47 @@
 									{/if}
 								</div>
 							</td>
-							{#each figures as f, c (f.id)}
+							{#if hasActions && actionsSide === 'start'}
+								<td
+									data-cell="{row.id}|{colOf(ACTIONS_ID)}"
+									tabindex={isTabStop(row.id, colOf(ACTIONS_ID)) ? 0 : -1}
+									onfocusin={onCellFocus}
+									class="sticky z-10 border-r border-b text-center {FOCUS_RING} {rowBg(isSelected)}"
+									style:left="{selectW + labelCol * stretch}px"
+								>
+									{@render menu(n)}
+								</td>
+							{/if}
+							{#each figures as f (f.id)}
 								{@const v = n.values[f.id] ?? null}
+								{@const cls = colClass[f.id]}
 								<td
 									data-col={f.id}
-									data-cell="{row.id}|{c + 1}"
-									tabindex={isTabStop(row.id, c + 1) ? 0 : -1}
+									data-cell="{row.id}|{colOf(f.id)}"
+									tabindex={isTabStop(row.id, colOf(f.id)) ? 0 : -1}
 									onfocusin={onCellFocus}
-									class={(hoverCol === f.id ? colClass[f.id].bodyHover : colClass[f.id].body) +
-										tone(v, n.kind === 'group')}
+									class={(hoverCol === f.id
+										? cls.bodyHover
+										: isSelected
+											? cls.bodySelected
+											: cls.body) + tone(v, n.kind === 'group')}
 								>
 									{formatFigure(f, v)}
 								</td>
 							{/each}
-							<td aria-hidden="true" class="border-b bg-background {ROW_HOVER}"></td>
+							<td aria-hidden="true" class="border-b {rowBg(isSelected)}"></td>
+							{#if hasActions && actionsSide === 'end'}
+								<td
+									data-cell="{row.id}|{colOf(ACTIONS_ID)}"
+									tabindex={isTabStop(row.id, colOf(ACTIONS_ID)) ? 0 : -1}
+									onfocusin={onCellFocus}
+									class="sticky right-0 z-10 border-b border-l text-center {FOCUS_RING} {rowBg(
+										isSelected
+									)}"
+								>
+									{@render menu(n)}
+								</td>
+							{/if}
 						</tr>
 					{:else}
 						<tr>
@@ -719,14 +959,24 @@
 
 				<tfoot>
 					<tr style:height="{rowHeight}px">
+						{#if selectable}
+							<td class="sticky bottom-0 left-0 z-30 border-t bg-muted"></td>
+						{/if}
 						<td
-							class="sticky bottom-0 left-0 z-30 border-t border-r bg-muted px-3 font-semibold whitespace-nowrap"
+							class="sticky bottom-0 z-30 border-t border-r bg-muted px-3 font-semibold whitespace-nowrap"
+							style:left="{selectW}px"
 						>
 							{totalLabel}
 							<span class="ml-1 font-normal text-muted-foreground tabular-nums">
 								{filtered.length} rows
 							</span>
 						</td>
+						{#if hasActions && actionsSide === 'start'}
+							<td
+								class="sticky bottom-0 z-30 border-t border-r bg-muted"
+								style:left="{selectW + labelCol * stretch}px"
+							></td>
+						{/if}
 						{#each figures as f (f.id)}
 							<td
 								data-col={f.id}
@@ -737,10 +987,30 @@
 							</td>
 						{/each}
 						<td aria-hidden="true" class="sticky bottom-0 z-20 border-t bg-muted"></td>
+						{#if hasActions && actionsSide === 'end'}
+							<td class="sticky right-0 bottom-0 z-30 border-t border-l bg-muted"></td>
+						{/if}
 					</tr>
 				</tfoot>
 			</table>
 		</div>
+		<!-- Floats above the total row, so selecting never moves the table. -->
+		{#if selectable && selected.length}
+			<div
+				role="status"
+				class="absolute left-1/2 z-40 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap items-center gap-2 rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md"
+				style:bottom="{rowHeight + scrollbarHeight + 8}px"
+			>
+				<span class="font-medium tabular-nums">{selected.length} selected</span>
+				{#if hiddenSelected}
+					<span class="text-muted-foreground">({hiddenSelected} hidden by filters)</span>
+				{/if}
+				<Button variant="ghost" size="xs" onclick={() => (selected = [])}>Clear</Button>
+				{#if selectionActions}
+					{@render selectionActions(selectedRows)}
+				{/if}
+			</div>
+		{/if}
 	</DataGrid.Viewport>
 
 	{#if rowMode === 'paged'}
