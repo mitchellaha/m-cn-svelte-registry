@@ -17,6 +17,8 @@
 		/** Paged with a pager, or one virtual scrolling list. Default 'virtual'. */
 		defaultRowMode?: RowMode;
 		defaultDensity?: 'comfortable' | 'compact';
+		/** Stretch the columns to fill the grid when they are narrower in total. Default true. */
+		defaultFitWidth?: boolean;
 		pageSizes?: number[];
 		/** Max height of the scrolling table, in px. The header and total row stick inside it. */
 		height?: number;
@@ -49,6 +51,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Field from '#lib/components/ui/field/index.js';
 	import * as Popover from '#lib/components/ui/popover/index.js';
+	import { Switch } from '#lib/components/ui/switch/index.js';
 	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
 	import { cn } from '#lib/utils.js';
 	import * as DataGrid from '$lib/registry/ui/data-grid/index.js';
@@ -83,6 +86,7 @@
 		widths = $bindable({}),
 		defaultRowMode = 'virtual',
 		defaultDensity = 'compact',
+		defaultFitWidth = true,
 		pageSizes = [25, 50, 100],
 		height = 600,
 		searchPlaceholder = 'Search...',
@@ -103,6 +107,7 @@
 	let ranges = $state.raw<RangeFilters>({});
 	let advanced = $state.raw<FilterGroup>({ logic: 'and', rules: [] });
 	let density = $state<DataGrid.Density>(untrack(() => defaultDensity));
+	let fitWidth = $state(untrack(() => defaultFitWidth));
 	let rowMode = $state<RowMode>(untrack(() => defaultRowMode));
 	let pageSize = $state(untrack(() => pageSizes[0] ?? 25));
 	let viewportWidth = $state(0);
@@ -354,8 +359,17 @@
 
 	const widthOf = (id: string, fallback: number) => widths[id] ?? fallback;
 	const figureWidth = (f: (typeof figures)[number]) => widthOf(f.id, FIGURE_WIDTH[f.kind]);
+	const baseOf = (id: string) => {
+		if (id === LABEL_ID) return labelCol;
+		const f = figures.find((x) => x.id === id);
+		return f ? figureWidth(f) : 0;
+	};
+	/** Every column at its own width, before any stretch. */
+	const baseTotal = $derived(figures.reduce((sum, f) => sum + figureWidth(f), labelCol));
+	/** With Fit width on and room to spare, every column grows by this factor to fill the grid. */
+	const stretch = $derived(fitWidth && viewportWidth > baseTotal ? viewportWidth / baseTotal : 1);
 	/** An explicit width keeps table-fixed in force, so a column can shrink below its content. */
-	const tableWidth = $derived(figures.reduce((sum, f) => sum + figureWidth(f), labelCol));
+	const tableWidth = $derived(baseTotal * stretch);
 
 	/** Drag a header's right edge. Starts from the width on screen, so the edge follows the pointer. */
 	function startResize(id: string, e: PointerEvent) {
@@ -364,11 +378,16 @@
 		const min = id === LABEL_ID ? 120 : 48;
 		const startX = e.clientX;
 		handle.setPointerCapture(e.pointerId);
-		const move = (ev: PointerEvent) =>
-			(widths = {
-				...widths,
-				[id]: Math.round(Math.min(800, Math.max(min, startWidth + ev.clientX - startX)))
-			});
+		const move = (ev: PointerEvent) => {
+			const target = Math.min(800, Math.max(min, startWidth + ev.clientX - startX));
+			// While fitted, solve for the share whose stretched width is `target`, so the edge stays
+			// under the pointer and the other columns give way. Past the grid's width, no stretch.
+			const others = baseTotal - baseOf(id);
+			const room = viewportWidth;
+			const base =
+				fitWidth && target + others < room ? (target * others) / (room - target) : target;
+			widths = { ...widths, [id]: Math.round(base * 10) / 10 };
+		};
 		// Fires after pointerup and pointercancel alike, so a cancelled touch drag cleans up too.
 		const done = () => {
 			handle.removeEventListener('pointermove', move);
@@ -510,6 +529,10 @@
 							<ToggleGroup.Item value="paged">Pages</ToggleGroup.Item>
 						</ToggleGroup.Root>
 					</Field.Field>
+					<Field.Field orientation="horizontal">
+						<Field.Label for="matrix-fit">Fit width</Field.Label>
+						<Switch id="matrix-fit" bind:checked={fitWidth} />
+					</Field.Field>
 				</Popover.Content>
 			</Popover.Root>
 			{#if exportFileName}
@@ -547,9 +570,9 @@
 				onpointerleave={() => (hoverCol = null)}
 			>
 				<colgroup>
-					<col style:width="{labelCol}px" />
+					<col style:width="{labelCol * stretch}px" />
 					{#each figures as f (f.id)}
-						<col style:width="{figureWidth(f)}px" />
+						<col style:width="{figureWidth(f) * stretch}px" />
 					{/each}
 					<!-- Takes the spare width, so table-fixed never stretches a sized column. -->
 					<col />

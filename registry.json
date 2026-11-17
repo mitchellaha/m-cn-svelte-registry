@@ -525,6 +525,7 @@
 				"input",
 				"popover",
 				"select",
+				"switch",
 				"toggle-group",
 				"https://mitchellaha.github.io/m-cn-svelte-registry/r/data-grid.json"
 			],
