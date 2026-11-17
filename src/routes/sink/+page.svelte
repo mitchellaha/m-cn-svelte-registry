@@ -6,10 +6,10 @@
 	import { groups } from '../groups.js';
 	import SiteHeader from '../site-header.svelte';
 
-	// CSS columns pack tiles of mixed heights without gaps. Blocks get fewer, wider columns.
+	// CSS columns pack tiles of mixed heights without gaps. Composites get fewer, wider columns.
 	const columns: Record<string, string> = {
 		Components: 'sm:columns-2 xl:columns-3',
-		Blocks: 'xl:columns-2'
+		Composites: 'xl:columns-2'
 	};
 </script>
 

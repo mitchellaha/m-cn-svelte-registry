@@ -34,7 +34,9 @@
 <nav aria-label="Registry items" class="flex flex-col gap-5 text-xs">
 	{#each groups as group (group.label)}
 		<div class="flex flex-col gap-1">
-			<p class="px-2 pb-1 font-medium text-muted-foreground">{group.label}</p>
+			<p class="px-2 pb-1 text-[0.65rem] font-semibold tracking-wider text-foreground uppercase">
+				{group.label}
+			</p>
 			{#each group.items as item (item.name)}
 				<a
 					href="#{item.name}"

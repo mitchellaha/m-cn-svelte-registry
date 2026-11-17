@@ -505,6 +505,43 @@
 					"target": "metric-ledger/sparkline.svelte"
 				}
 			]
+		},
+		{
+			"name": "dashboard-01",
+			"type": "registry:block",
+			"title": "Dashboard",
+			"description": "A dashboard page with the app header, a metric ledger and a cash waterfall grid",
+			"categories": ["page"],
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"button",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/app-header.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/metric-ledger.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/treasury-waterfall-grid.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/dashboard-01/dashboard-01.svelte",
+					"type": "registry:component",
+					"target": "dashboard-01/dashboard-01.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/dashboard-01/dashboard-01-demo.svelte",
+					"type": "registry:component",
+					"target": "dashboard-01/dashboard-01-demo.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/dashboard-01/dashboard-01-data.ts",
+					"type": "registry:component",
+					"target": "dashboard-01/dashboard-01-data.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/dashboard-01/types.ts",
+					"type": "registry:component",
+					"target": "dashboard-01/types.ts"
+				}
+			]
 		}
 	]
 }

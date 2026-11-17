@@ -63,7 +63,12 @@
 				aria-current={page.route.id === '/' ? 'page' : undefined}
 				class={linkClass('/')}>Components</a
 			>
-			<!-- /sink sets trailingSlash: 'always', so link straight to the folder index. -->
+			<!-- /blocks and /sink set trailingSlash: 'always', so link straight to the folder index. -->
+			<a
+				href="{resolve('/blocks')}/"
+				aria-current={page.route.id === '/blocks' ? 'page' : undefined}
+				class={linkClass('/blocks')}>Blocks</a
+			>
 			<a
 				href="{resolve('/sink')}/"
 				aria-current={page.route.id === '/sink' ? 'page' : undefined}

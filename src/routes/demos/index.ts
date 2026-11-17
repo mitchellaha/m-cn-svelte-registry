@@ -1,5 +1,6 @@
 import type { Component } from 'svelte';
 import AppHeaderDemo from '$lib/registry/blocks/app-header/app-header-demo.svelte';
+import Dashboard01Demo from '$lib/registry/blocks/dashboard-01/dashboard-01-demo.svelte';
 import BomTreeGridDemo from '$lib/registry/blocks/bom-tree-grid/bom-tree-grid-demo.svelte';
 import CommandPaletteDemo from '$lib/registry/blocks/command-palette/command-palette-demo.svelte';
 import FeatureMenuDemo from '$lib/registry/blocks/feature-menu/feature-menu-demo.svelte';
@@ -37,7 +38,8 @@ export const demos: Record<string, Demo> = {
 	'feature-menu': { component: FeatureMenuDemo, height: 640, padded: true },
 	'command-palette': { component: CommandPaletteDemo, height: 540, padded: true },
 	'app-header': { component: AppHeaderDemo, height: 640, padded: true },
-	'metric-ledger': { component: MetricLedgerDemo, height: 520, padded: true }
+	'metric-ledger': { component: MetricLedgerDemo, height: 520, padded: true },
+	'dashboard-01': { component: Dashboard01Demo, height: 1400, padded: false }
 };
 
 export type Viewport = 'phone' | 'tablet' | 'desktop';
