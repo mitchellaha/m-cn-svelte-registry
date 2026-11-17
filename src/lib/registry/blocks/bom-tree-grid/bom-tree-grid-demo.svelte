@@ -3,4 +3,5 @@
 	import { demoBom } from './demo-data.js';
 </script>
 
-<BomTreeGrid data={demoBom} />
+<!-- Opens Drive System and its Drivetrain; everything else starts collapsed. -->
+<BomTreeGrid data={demoBom} defaultExpanded={{ 'sys-100': true, 'asm-120': true }} />

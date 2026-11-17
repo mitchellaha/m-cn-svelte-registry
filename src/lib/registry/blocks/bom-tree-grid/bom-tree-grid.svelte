@@ -1,18 +1,21 @@
 <script lang="ts" module>
+	import type { ExpandedState } from '@tanstack/svelte-table';
 	import type { BomNode } from './types.js';
 
 	export type BomTreeGridProps = {
 		product?: string;
 		data: BomNode[];
+		/** Rows open on load: true for all, or a map of node id to true. Default true. */
+		defaultExpanded?: ExpandedState;
 	};
 </script>
 
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import {
 		type ColumnDef,
 		type ColumnFiltersState,
 		type ColumnVisibilityState,
-		type ExpandedState,
 		type SortingState,
 		columnFilteringFeature,
 		columnSizingFeature,
@@ -61,7 +64,7 @@
 	import { ICONS } from './icons.js';
 	import type { BomRow, Supply } from './types.js';
 
-	let { product = 'Meridian C2 Cargo', data }: BomTreeGridProps = $props();
+	let { product = 'Meridian C2 Cargo', data, defaultExpanded = true }: BomTreeGridProps = $props();
 
 	/** Columns the Display popover can hide. Part, cost and actions always show. */
 	const OPTIONAL_COLUMNS = [
@@ -78,7 +81,8 @@
 	let search = $state('');
 	const query = $derived(search.trim().toLowerCase());
 	let sorting = $state.raw<SortingState>([]);
-	let expanded = $state.raw<ExpandedState>(true);
+	// Only the first value counts; the toolbar and row toggles own it after load.
+	let expanded = $state.raw<ExpandedState>(untrack(() => defaultExpanded));
 	let supplyFilter = $state.raw<Supply[]>([]);
 	let density = $state<DataGrid.Density>('comfortable');
 	let partDetail = $state(false);
