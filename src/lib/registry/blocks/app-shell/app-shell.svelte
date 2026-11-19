@@ -137,6 +137,7 @@
 			<SidePanel
 				bind:open={() => panel !== null, (open) => !open && (panel = null)}
 				title={panel === 'assistant' ? labels.assistant : labels.notifications}
+				closeLabel={labels.close}
 				class="rounded-xl shadow-sm ring-1 ring-foreground/10"
 			>
 				{#if panel === 'assistant'}

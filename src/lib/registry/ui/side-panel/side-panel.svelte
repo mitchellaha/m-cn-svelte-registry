@@ -10,8 +10,6 @@
 		children?: Snippet;
 		/** Panel width when docked. */
 		width?: string;
-		/** Docks beside the page at this width and up; below it the panel is a sheet. */
-		dockQuery?: string;
 		closeLabel?: string;
 		class?: string;
 	};
@@ -31,13 +29,13 @@
 		actions,
 		children,
 		width = '22rem',
-		dockQuery = 'min-width: 1024px',
 		closeLabel = 'Close',
 		class: className
 	}: SidePanelProps = $props();
 
-	// False during prerender, so the server renders the closed sheet and nothing else.
-	const docked = $derived(new MediaQuery(dockQuery, false));
+	// Docks beside the page at 1024px and up; below it the panel is a sheet. False during
+	// prerender, so the server renders the closed sheet and nothing else.
+	const docked = new MediaQuery('min-width: 1024px', false);
 </script>
 
 {#snippet body(sheet: boolean)}

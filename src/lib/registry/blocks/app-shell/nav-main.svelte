@@ -1,21 +1,17 @@
 <script lang="ts">
 	import * as Sidebar from '#lib/components/ui/sidebar/index.js';
 	import NavFlyout from './nav-flyout.svelte';
+	import NavLink from './nav-link.svelte';
 	import NavRow from './nav-row.svelte';
 	import type { AppShellModule, AppShellScreen } from './types.js';
 
 	let {
 		modules,
-		label,
 		current,
-		/** Modules whose screens always show, such as bookmarks. */
-		alwaysOpen = [],
 		onNavigate
 	}: {
 		modules: AppShellModule[];
-		label?: string;
 		current?: string;
-		alwaysOpen?: string[];
 		onNavigate: (target: AppShellScreen, module: AppShellModule) => void;
 	} = $props();
 
@@ -30,31 +26,28 @@
 		openId = null;
 		sidebar.setOpenMobile(false);
 	}
-
-	// A module's screens show under it while you are on its page or one of them (or it is always
-	// open); otherwise they open in a flyout beside the row. Icons only, every module uses the
-	// flyout. The phone sheet has no room beside it, so there every module opens inline.
-	function flyout(module: AppShellModule, inline: boolean) {
-		if (sidebar.isMobile) return false;
-		return iconMode || (!inline && module.screens.length > 0);
-	}
 </script>
 
 <Sidebar.Group>
-	{#if label}<Sidebar.GroupLabel>{label}</Sidebar.GroupLabel>{/if}
 	<Sidebar.Menu>
 		{#each modules as module (module.id)}
-			{@const inside = module.id === current || module.screens.some((s) => s.id === current)}
-			{@const inline = inside || alwaysOpen.includes(module.id)}
+			{@const isPage = module.id === current}
+			{@const inside = isPage || module.screens.some((s) => s.id === current)}
+			{@const inline = inside || module.alwaysOpen}
 			<!-- The row lights up on its own page. On one of its screens the screen lights up
 			     instead, unless the screens are hidden (icons only). -->
-			{@const highlight = iconMode ? inside : module.id === current}
+			{@const active = iconMode ? inside : isPage}
 			<Sidebar.MenuItem>
-				{#if flyout(module, inline)}
+				<!-- Screens show under the module while you are in it; otherwise they open in a
+				     flyout beside the row, as they do for every module when icons only. The phone
+				     sheet has no room beside it, so iconMode is false there. -->
+				{#if iconMode || (!inline && module.screens.length && !sidebar.isMobile)}
 					<NavFlyout
 						{module}
-						active={highlight}
+						{active}
+						{isPage}
 						{current}
+						{iconMode}
 						open={openId === module.id}
 						onOpenChange={(open) => {
 							if (open) openId = module.id;
@@ -63,7 +56,7 @@
 						onNavigate={navigate}
 					/>
 				{:else}
-					<NavRow {module} active={highlight} {current} onNavigate={navigate} />
+					<NavRow {module} {active} {isPage} onNavigate={navigate} />
 					{#if inline && module.screens.length}
 						<Sidebar.MenuSub class="me-0 border-l-0 pe-0">
 							{#each module.screens as screen (screen.id)}
@@ -73,22 +66,14 @@
 										class="w-full text-sidebar-foreground/65 data-active:font-medium"
 									>
 										{#snippet child({ props })}
-											<!-- Without an href it is a button, so it still takes focus. -->
-											<svelte:element
-												this={screen.href ? 'a' : 'button'}
+											<NavLink
 												{...props}
-												href={screen.href}
-												type={screen.href ? undefined : 'button'}
-												aria-current={screen.id === current ? 'page' : undefined}
-												onclick={(e: MouseEvent) => {
-													const modified = e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey;
-													if (screen.href && modified) return;
-													e.preventDefault();
-													navigate(screen, module);
-												}}
+												target={screen}
+												isPage={screen.id === current}
+												onselect={() => navigate(screen, module)}
 											>
 												<span>{screen.label}</span>
-											</svelte:element>
+											</NavLink>
 										{/snippet}
 									</Sidebar.MenuSubButton>
 								</Sidebar.MenuSubItem>

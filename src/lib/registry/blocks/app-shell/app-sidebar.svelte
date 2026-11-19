@@ -36,7 +36,13 @@
 	const modules = $derived<AppShellModule[]>(
 		data.bookmarks.length
 			? [
-					{ id: 'bookmarks', label: labels.bookmarks, icon: BookmarkIcon, screens: data.bookmarks },
+					{
+						id: 'bookmarks',
+						label: labels.bookmarks,
+						icon: BookmarkIcon,
+						screens: data.bookmarks,
+						alwaysOpen: true
+					},
 					...data.modules
 				]
 			: data.modules
@@ -54,7 +60,7 @@
 		</div>
 	</Sidebar.Header>
 	<Sidebar.Content>
-		<NavMain {modules} alwaysOpen={['bookmarks']} {current} {onNavigate} />
+		<NavMain {modules} {current} {onNavigate} />
 	</Sidebar.Content>
 	<NavFooter help={data.help} {labels} {onHelp} {onSettings} {onFeedback} />
 </Sidebar.Root>

@@ -702,6 +702,11 @@
 					"target": "app-shell/nav-row.svelte"
 				},
 				{
+					"path": "src/lib/registry/blocks/app-shell/nav-link.svelte",
+					"type": "registry:component",
+					"target": "app-shell/nav-link.svelte"
+				},
+				{
 					"path": "src/lib/registry/blocks/app-shell/nav-footer.svelte",
 					"type": "registry:component",
 					"target": "app-shell/nav-footer.svelte"

@@ -13,6 +13,8 @@ export type AppShellScreen = {
 /** A top-level page, such as a module's overview, with its own screens under it. */
 export type AppShellModule = AppShellScreen & {
 	screens: AppShellScreen[];
+	/** Show its screens even when the user is elsewhere, as bookmarks do. */
+	alwaysOpen?: boolean;
 };
 
 export type AppShellMenuItem = {
@@ -69,6 +71,7 @@ export type AppShellPanel = 'notifications' | 'assistant';
 
 export type AppShellLabels = {
 	search: string;
+	close: string;
 	bookmarks: string;
 	assistant: string;
 	notifications: string;
@@ -90,6 +93,7 @@ export type AppShellLabels = {
 
 export const defaultAppShellLabels: AppShellLabels = {
 	search: 'Search or ask a question',
+	close: 'Close',
 	bookmarks: 'Bookmarks',
 	assistant: 'Assistant',
 	notifications: 'Notifications',
