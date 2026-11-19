@@ -11,7 +11,7 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
 	// Written by the shadcn-svelte CLI; left as installed (see .prettierignore).
-	{ ignores: ['src/lib/components/ui/**', 'src/lib/utils.ts'] },
+	{ ignores: ['src/lib/components/ui/**', 'src/lib/utils.ts', 'src/lib/hooks/**'] },
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,

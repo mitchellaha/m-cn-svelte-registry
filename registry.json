@@ -464,6 +464,44 @@
 			]
 		},
 		{
+			"name": "indicator",
+			"type": "registry:ui",
+			"title": "Indicator",
+			"description": "A count or dot pinned to the corner of an icon, button or avatar. Counts above a maximum show as 99+.",
+			"dependencies": ["tailwind-variants"],
+			"devDependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/indicator/indicator.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/indicator/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
+			"name": "side-panel",
+			"type": "registry:ui",
+			"title": "Side Panel",
+			"description": "A panel docked to the right of the page on wide screens that becomes a sheet on narrow ones. Title, header actions, close button and a scrolling body.",
+			"dependencies": ["@lucide/svelte"],
+			"devDependencies": [],
+			"registryDependencies": ["button", "sheet"],
+			"files": [
+				{
+					"path": "src/lib/registry/ui/side-panel/side-panel.svelte",
+					"type": "registry:ui"
+				},
+				{
+					"path": "src/lib/registry/ui/side-panel/index.ts",
+					"type": "registry:ui"
+				}
+			]
+		},
+		{
 			"name": "metric-ledger",
 			"type": "registry:block",
 			"title": "Metric Ledger",
@@ -612,6 +650,92 @@
 					"path": "src/lib/registry/blocks/dashboard-01/types.ts",
 					"type": "registry:component",
 					"target": "dashboard-01/types.ts"
+				}
+			]
+		},
+		{
+			"name": "app-shell",
+			"type": "registry:block",
+			"title": "App Shell",
+			"description": "An application frame on the shadcn-svelte sidebar: modules that expand inline and open as menus when the sidebar is icons only, a header with search, assistant and notification buttons and an account menu, and a right-hand panel for notifications or an assistant.",
+			"categories": ["page"],
+			"dependencies": ["@lucide/svelte", "bits-ui"],
+			"devDependencies": [],
+			"registryDependencies": [
+				"avatar",
+				"badge",
+				"button",
+				"collapsible",
+				"dropdown-menu",
+				"kbd",
+				"sidebar",
+				"switch",
+				"textarea",
+				"toggle-group",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/indicator.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/side-panel.json",
+				"https://mitchellaha.github.io/m-cn-svelte-registry/r/command-palette.json"
+			],
+			"files": [
+				{
+					"path": "src/lib/registry/blocks/app-shell/app-shell.svelte",
+					"type": "registry:component",
+					"target": "app-shell/app-shell.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/app-sidebar.svelte",
+					"type": "registry:component",
+					"target": "app-shell/app-sidebar.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/nav-main.svelte",
+					"type": "registry:component",
+					"target": "app-shell/nav-main.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/nav-flyout.svelte",
+					"type": "registry:component",
+					"target": "app-shell/nav-flyout.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/nav-footer.svelte",
+					"type": "registry:component",
+					"target": "app-shell/nav-footer.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/shell-header.svelte",
+					"type": "registry:component",
+					"target": "app-shell/shell-header.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/account-menu.svelte",
+					"type": "registry:component",
+					"target": "app-shell/account-menu.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/notification-list.svelte",
+					"type": "registry:component",
+					"target": "app-shell/notification-list.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/assistant-panel.svelte",
+					"type": "registry:component",
+					"target": "app-shell/assistant-panel.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/types.ts",
+					"type": "registry:component",
+					"target": "app-shell/types.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/demo-data.ts",
+					"type": "registry:component",
+					"target": "app-shell/demo-data.ts"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/app-shell-demo.svelte",
+					"type": "registry:component",
+					"target": "app-shell/app-shell-demo.svelte"
 				}
 			]
 		}

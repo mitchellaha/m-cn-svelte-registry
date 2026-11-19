@@ -1,4 +1,5 @@
 import type { Component } from 'svelte';
+import AppShellDemo from '$lib/registry/blocks/app-shell/app-shell-demo.svelte';
 import AppHeaderDemo from '$lib/registry/blocks/app-header/app-header-demo.svelte';
 import Dashboard01Demo from '$lib/registry/blocks/dashboard-01/dashboard-01-demo.svelte';
 import BomTreeGridDemo from '$lib/registry/blocks/bom-tree-grid/bom-tree-grid-demo.svelte';
@@ -15,6 +16,8 @@ import IconTileDemo from './icon-tile-demo.svelte';
 import CompoundTagDemo from './compound-tag-demo.svelte';
 import StarRatingDemo from './star-rating-demo.svelte';
 import StatusBadgeDemo from './status-badge-demo.svelte';
+import IndicatorDemo from './indicator-demo.svelte';
+import SidePanelDemo from './side-panel-demo.svelte';
 
 export type Demo = {
 	component: Component;
@@ -32,6 +35,8 @@ export const demos: Record<string, Demo> = {
 	'star-rating': { component: StarRatingDemo, height: 200, padded: false },
 	'compound-tag': { component: CompoundTagDemo, height: 260, padded: false },
 	'delta-pill': { component: DeltaPillDemo, height: 240, padded: false },
+	indicator: { component: IndicatorDemo, height: 220, padded: false },
+	'side-panel': { component: SidePanelDemo, height: 440, padded: true },
 	'data-grid': { component: DataGridDemo, height: 480, padded: true },
 	'bom-tree-grid': { component: BomTreeGridDemo, height: 760, padded: true },
 	'treasury-waterfall-grid': { component: TreasuryWaterfallGridDemo, height: 760, padded: true },
@@ -41,6 +46,7 @@ export const demos: Record<string, Demo> = {
 	'app-header': { component: AppHeaderDemo, height: 640, padded: true },
 	'metric-ledger': { component: MetricLedgerDemo, height: 520, padded: true },
 	'matrix-grid': { component: MatrixGridDemo, height: 760, padded: true },
+	'app-shell': { component: AppShellDemo, height: 900, padded: false },
 	'dashboard-01': { component: Dashboard01Demo, height: 1400, padded: false }
 };
 

@@ -15,7 +15,7 @@ SvelteKit 3 differs from training data: `$lib` is gone (use `#lib`, Node subpath
 - `registry.json`: every item. All of `dependencies`, `devDependencies`, `registryDependencies` must be present (empty arrays are fine) or `registry build` fails.
 - `src/lib/registry/ui/<name>/<name>.svelte` + `index.ts`: `registry:ui` items.
 - `src/lib/registry/blocks/<name>/<name>.svelte` + `<name>-demo.svelte` + helpers: `registry:block` items. Component takes `data` as a required prop; the demo holds sample data. Files import each other relatively, and each `files` entry in `registry.json` sets `"target": "<name>/<file>"`.
-- `src/lib/components/ui/`: shadcn-svelte components installed by the CLI, for the preview app and as dependencies. Never published, never hand-edited, excluded from Prettier and ESLint.
+- `src/lib/components/ui/` and `src/lib/hooks/`: installed by the shadcn-svelte CLI, for the preview app and as dependencies. Never published, never hand-edited, excluded from Prettier and ESLint.
 - `src/routes/groups.ts`: the sidebar groups. Components = `registry:ui`; Composites = `registry:block` without `"categories": ["page"]`. Page blocks (with that category) are left out and shown on `/blocks`.
 - `src/routes/(docs)/`: layout with header and sidebar. `+page.svelte` is the index of cards; `components/[name]/` is one prerendered page per Component or Composite: title, description, demo in `preview-frame.svelte` (Phone / Tablet / Desktop toggle), install command.
 - `src/routes/blocks/`: page blocks in a shadcn-svelte style viewer (Preview / Code tabs). Code is highlighted by Shiki in `+page.server.ts` at prerender.

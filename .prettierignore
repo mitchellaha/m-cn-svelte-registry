@@ -11,3 +11,4 @@ bun.lockb
 # Written by the shadcn-svelte CLI; left as installed so re-adds don't create diffs
 /src/lib/components/ui/
 /src/lib/utils.ts
+/src/lib/hooks/
