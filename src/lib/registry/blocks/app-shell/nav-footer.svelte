@@ -26,7 +26,7 @@
 	const sidebar = Sidebar.useSidebar();
 </script>
 
-<Sidebar.Footer class="flex-row items-center gap-1 border-t border-sidebar-border">
+<Sidebar.Footer class="flex-row items-center gap-1">
 	<div class="flex items-center gap-1 group-data-[collapsible=icon]:hidden">
 		{#if help.length}
 			<DropdownMenu.Root>
