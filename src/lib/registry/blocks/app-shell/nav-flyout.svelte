@@ -51,14 +51,29 @@
 
 	// Focus moves to the first screen here rather than through Bits' auto-focus, which does not
 	// run for a menu opened from code; this also covers a menu that hover already opened.
-	async function onkeydown(event: KeyboardEvent) {
+	function onkeydown(event: KeyboardEvent) {
 		if (event.key !== 'ArrowRight') return;
 		event.preventDefault();
+		openByKeyboard();
+	}
+
+	// A heading row (bookmarks) has no page, so a click or Enter opens its menu the same way.
+	async function openByKeyboard() {
 		clearTimeout(timer);
 		byHover = false;
 		onOpenChange(true);
 		await tick();
 		requestAnimationFrame(() => menu?.querySelector<HTMLElement>('[role=menuitem]')?.focus());
+	}
+
+	// After a keyboard pick the row may unmount (its module now shows inline), which would drop
+	// focus to the page, so move it to the new current entry. Mouse picks leave focus alone.
+	async function pick(screen: AppShellScreen) {
+		const nav = row?.closest('[data-sidebar=menu]');
+		onNavigate(screen, module);
+		if (byHover) return;
+		await tick();
+		nav?.querySelector<HTMLElement>('[aria-current=page]')?.focus();
 	}
 </script>
 
@@ -68,6 +83,7 @@
 	{isPage}
 	bind:ref={row}
 	{onNavigate}
+	onActivate={openByKeyboard}
 	aria-haspopup="menu"
 	aria-expanded={open}
 	onpointerenter={hoverOpen}
@@ -96,7 +112,7 @@
 		{#each module.screens as screen (screen.id)}
 			<DropdownMenu.Item
 				class={cn('transition-none', screen.id === current && 'font-medium')}
-				onSelect={() => onNavigate(screen, module)}
+				onSelect={() => pick(screen)}
 			>
 				{screen.label}
 			</DropdownMenu.Item>

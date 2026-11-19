@@ -95,9 +95,13 @@
 		}))
 	);
 
+	// A bookmark reports the module that owns its screen, not the bookmarks heading.
 	function navigate(screen: AppShellScreen, module: AppShellModule) {
 		current = screen.id;
-		onNavigate?.(screen, module);
+		const owner = module.heading
+			? (data.modules.find((m) => m.screens.some((s) => s.id === screen.id)) ?? module)
+			: module;
+		onNavigate?.(screen, owner);
 	}
 </script>
 

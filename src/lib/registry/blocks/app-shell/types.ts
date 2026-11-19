@@ -15,6 +15,8 @@ export type AppShellModule = AppShellScreen & {
 	screens: AppShellScreen[];
 	/** Show its screens even when the user is elsewhere, as bookmarks do. */
 	alwaysOpen?: boolean;
+	/** A label for its screens rather than a page of its own, as bookmarks are. */
+	heading?: boolean;
 };
 
 export type AppShellMenuItem = {

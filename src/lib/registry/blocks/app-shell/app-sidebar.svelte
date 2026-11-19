@@ -41,7 +41,8 @@
 						label: labels.bookmarks,
 						icon: BookmarkIcon,
 						screens: data.bookmarks,
-						alwaysOpen: true
+						alwaysOpen: true,
+						heading: true
 					},
 					...data.modules
 				]

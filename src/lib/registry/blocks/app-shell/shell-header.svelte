@@ -31,7 +31,8 @@
 		onSignOut?: () => void;
 	} = $props();
 
-	let apple = $state(true);
+	// Unknown until mount, so the prerendered page shows no shortcut rather than the wrong one.
+	let apple = $state<boolean | null>(null);
 	onMount(() => {
 		apple = isApplePlatform();
 	});
@@ -48,7 +49,9 @@
 	>
 		<SearchIcon />
 		<span class="truncate">{labels.search}</span>
-		<Kbd class="ms-auto max-sm:hidden">{apple ? '⌘K' : 'Ctrl K'}</Kbd>
+		{#if apple !== null}
+			<Kbd class="ms-auto max-sm:hidden">{apple ? '⌘K' : 'Ctrl K'}</Kbd>
+		{/if}
 	</button>
 	<div class="ms-auto flex items-center gap-1">
 		<Button

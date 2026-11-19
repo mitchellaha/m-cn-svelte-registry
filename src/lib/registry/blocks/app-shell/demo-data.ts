@@ -24,7 +24,7 @@ import WrenchIcon from '@lucide/svelte/icons/wrench';
 import type { AppShellData, AppShellModule, AppShellNotification } from './types.js';
 
 // Invented data for the demo. A module's id is its own page (its overview); screen ids are unique
-// across modules and bookmarks.
+// across modules. A bookmark uses the id of the screen it points to.
 function module(
 	id: string,
 	label: string,
@@ -49,10 +49,10 @@ function slug(text: string) {
 export const appShellData: AppShellData = {
 	product: 'Roadline',
 	bookmarks: [
-		{ id: 'bookmark/drivers', label: 'Drivers' },
-		{ id: 'bookmark/vehicles', label: 'Vehicles' },
-		{ id: 'bookmark/users-and-roles', label: 'Users & Roles' },
-		{ id: 'bookmark/tags', label: 'Tags & Attributes' }
+		{ id: 'fleet/drivers', label: 'Drivers' },
+		{ id: 'fleet/vehicles', label: 'Vehicles' },
+		{ id: 'compliance/violations', label: 'Violations' },
+		{ id: 'maintenance/work-orders', label: 'Work Orders' }
 	],
 	modules: [
 		module('fleet', 'Fleet', MapPinnedIcon, [

@@ -31,17 +31,17 @@
 <Sidebar.Group>
 	<Sidebar.Menu>
 		{#each modules as module (module.id)}
-			{@const isPage = module.id === current}
+			{@const isPage = !module.heading && module.id === current}
 			{@const inside = isPage || module.screens.some((s) => s.id === current)}
-			{@const inline = inside || module.alwaysOpen}
+			<!-- The phone sheet has no room for a flyout, so there every module shows its screens. -->
+			{@const inline = inside || module.alwaysOpen || sidebar.isMobile}
 			<!-- The row lights up on its own page. On one of its screens the screen lights up
 			     instead, unless the screens are hidden (icons only). -->
 			{@const active = iconMode ? inside : isPage}
 			<Sidebar.MenuItem>
 				<!-- Screens show under the module while you are in it; otherwise they open in a
-				     flyout beside the row, as they do for every module when icons only. The phone
-				     sheet has no room beside it, so iconMode is false there. -->
-				{#if iconMode || (!inline && module.screens.length && !sidebar.isMobile)}
+				     flyout beside the row, as they do for every module when icons only. -->
+				{#if iconMode || (!inline && module.screens.length)}
 					<NavFlyout
 						{module}
 						{active}

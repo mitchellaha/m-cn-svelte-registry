@@ -10,6 +10,7 @@
 		isPage,
 		ref = $bindable(null),
 		onNavigate,
+		onActivate,
 		...restProps
 	}: HTMLAttributes<HTMLElement> & {
 		module: AppShellModule;
@@ -19,21 +20,31 @@
 		isPage: boolean;
 		ref?: HTMLElement | null;
 		onNavigate: (target: AppShellScreen, module: AppShellModule) => void;
+		/** A heading row's click action, such as opening its flyout. Without it the heading is plain text. */
+		onActivate?: () => void;
 	} = $props();
 </script>
 
-<!-- The row is the module's own page. -->
 <Sidebar.MenuButton isActive={active} {...restProps}>
 	{#snippet child({ props })}
-		<NavLink
-			{...props}
-			target={module}
-			{isPage}
-			bind:ref
-			onselect={() => onNavigate(module, module)}
-		>
-			{#if module.icon}<module.icon />{/if}
-			<span>{module.label}</span>
-		</NavLink>
+		{#if module.heading && !onActivate}
+			<!-- A heading labels its screens and is not a page of its own. -->
+			<div bind:this={ref} {...props} class={[props.class, 'pointer-events-none']}>
+				{#if module.icon}<module.icon />{/if}
+				<span>{module.label}</span>
+			</div>
+		{:else}
+			<!-- The row is the module's own page. -->
+			<NavLink
+				{...props}
+				target={module.heading ? { id: module.id, label: module.label } : module}
+				{isPage}
+				bind:ref
+				onselect={() => (module.heading ? onActivate?.() : onNavigate(module, module))}
+			>
+				{#if module.icon}<module.icon />{/if}
+				<span>{module.label}</span>
+			</NavLink>
+		{/if}
 	{/snippet}
 </Sidebar.MenuButton>
