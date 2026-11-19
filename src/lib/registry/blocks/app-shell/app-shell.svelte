@@ -108,7 +108,8 @@
 		{onSettings}
 		{onFeedback}
 	/>
-	<Sidebar.Inset class="min-w-0 bg-sidebar">
+	<!-- One screen tall: the page scrolls inside its card, so nothing slides under the header. -->
+	<Sidebar.Inset class="h-svh min-w-0 bg-sidebar">
 		<ShellHeader
 			{data}
 			{labels}
@@ -119,14 +120,16 @@
 			{onAccount}
 			{onSignOut}
 		/>
-		<div class="flex flex-1 gap-2 px-2 pb-2 md:ps-0">
-			<div class="min-w-0 flex-1 rounded-xl bg-background shadow-sm ring-1 ring-foreground/5">
+		<div class="flex min-h-0 flex-1 gap-2 px-2 pb-2">
+			<div
+				class="min-w-0 flex-1 overflow-y-auto rounded-xl bg-background shadow-sm ring-1 ring-foreground/5"
+			>
 				{@render children?.()}
 			</div>
 			<SidePanel
 				bind:open={() => panel !== null, (open) => !open && (panel = null)}
 				title={panel === 'assistant' ? labels.assistant : labels.notifications}
-				class="sticky top-12 h-[calc(100svh-3.5rem)] rounded-xl shadow-sm ring-1 ring-foreground/10"
+				class="rounded-xl shadow-sm ring-1 ring-foreground/10"
 			>
 				{#if panel === 'assistant'}
 					<AssistantPanel suggestions={data.suggestions} {labels} {onAsk} children={conversation} />

@@ -39,9 +39,7 @@
 	const toggle = (which: AppShellPanel) => (panel = panel === which ? null : which);
 </script>
 
-<header
-	class="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-2 bg-sidebar ps-2 pe-3 md:ps-0"
->
+<header class="flex h-12 shrink-0 items-center gap-2 bg-sidebar ps-2 pe-3">
 	<Sidebar.Trigger class="md:hidden" aria-label={labels.toggleSidebar} />
 	<button
 		type="button"
