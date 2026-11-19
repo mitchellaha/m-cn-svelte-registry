@@ -150,4 +150,9 @@
 	html {
 		@apply font-sans;
 	}
+	/* Tailwind v4 gives buttons the default cursor; shadcn-svelte's Button docs restore the pointer here. */
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
+	}
 }
