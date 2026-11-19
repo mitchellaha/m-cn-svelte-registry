@@ -659,7 +659,7 @@
 			"title": "App Shell",
 			"description": "An application frame on the shadcn-svelte sidebar: modules that expand inline and open as menus when the sidebar is icons only, a header with search, assistant and notification buttons and an account menu, and a right-hand panel for notifications or an assistant.",
 			"categories": ["page"],
-			"dependencies": ["@lucide/svelte", "bits-ui"],
+			"dependencies": ["@lucide/svelte", "bits-ui", "mode-watcher"],
 			"devDependencies": [],
 			"registryDependencies": [
 				"avatar",

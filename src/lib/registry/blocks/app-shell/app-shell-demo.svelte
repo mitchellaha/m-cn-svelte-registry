@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import TruckIcon from '@lucide/svelte/icons/truck';
+	import { mode, setMode } from 'mode-watcher';
 	import AppShell from './app-shell.svelte';
 	import { appShellData, appShellNotifications } from './demo-data.js';
 	import type { AppShellPanel } from './types.js';
@@ -8,19 +8,7 @@
 	let current = $state('fleet/overview');
 	let panel = $state<AppShellPanel | null>(null);
 	let notifications = $state(appShellNotifications);
-	let dark = $state(false);
 	let asked = $state<string[]>([]);
-
-	let themed = $state(false);
-
-	// The demo applies the switch itself; the block only reports it. Start from the page's theme.
-	onMount(() => {
-		dark = document.documentElement.classList.contains('dark');
-		themed = true;
-	});
-	$effect(() => {
-		if (themed) document.documentElement.classList.toggle('dark', dark);
-	});
 
 	const screen = $derived(
 		[...appShellData.modules.flatMap((m) => m.screens), ...appShellData.bookmarks].find(
@@ -44,7 +32,8 @@
 	bind:current
 	bind:panel
 	bind:notifications
-	bind:dark
+	// The block only reports the switch; mode-watcher applies and remembers it, as in the shadcn-svelte dark mode guide.
+	bind:dark={() => mode.current === 'dark', (on) => setMode(on ? 'dark' : 'light')}
 	onAsk={(prompt) => (asked = [...asked, prompt])}
 	onSettings={() => {}}
 	onFeedback={() => {}}
