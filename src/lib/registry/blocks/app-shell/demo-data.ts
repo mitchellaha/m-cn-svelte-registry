@@ -23,7 +23,8 @@ import WorkflowIcon from '@lucide/svelte/icons/workflow';
 import WrenchIcon from '@lucide/svelte/icons/wrench';
 import type { AppShellData, AppShellModule, AppShellNotification } from './types.js';
 
-// Invented data for the demo. Screen ids are unique across modules and bookmarks.
+// Invented data for the demo. A module's id is its own page (its overview); screen ids are unique
+// across modules and bookmarks.
 function module(
 	id: string,
 	label: string,
@@ -55,7 +56,6 @@ export const appShellData: AppShellData = {
 	],
 	modules: [
 		module('fleet', 'Fleet', MapPinnedIcon, [
-			'Overview',
 			'Vehicles',
 			'Trailers',
 			'Drivers',

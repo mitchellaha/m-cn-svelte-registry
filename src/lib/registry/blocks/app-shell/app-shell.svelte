@@ -87,6 +87,14 @@
 
 	let searchOpen = $state(false);
 
+	// Search lists each module's own page first, then its screens.
+	const paletteModules = $derived(
+		data.modules.map((m) => ({
+			...m,
+			screens: [{ id: m.id, label: m.label, icon: m.icon, href: m.href }, ...m.screens]
+		}))
+	);
+
 	function navigate(screen: AppShellScreen, module: AppShellModule) {
 		current = screen.id;
 		onNavigate?.(screen, module);
@@ -148,9 +156,10 @@
 
 <CommandPalette
 	bind:open={searchOpen}
-	data={{ modules: data.modules, actions: data.actions }}
-	onSelect={(selection) =>
-		selection.type === 'action'
-			? onAction?.(selection.action)
-			: navigate(selection.screen, selection.module)}
+	data={{ modules: paletteModules, actions: data.actions }}
+	onSelect={(selection) => {
+		if (selection.type === 'action') return onAction?.(selection.action);
+		const module = data.modules.find((m) => m.id === selection.module.id);
+		if (module) navigate(selection.screen, module);
+	}}
 />

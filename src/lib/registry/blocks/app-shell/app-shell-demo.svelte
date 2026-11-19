@@ -5,15 +5,17 @@
 	import { appShellData, appShellNotifications } from './demo-data.js';
 	import type { AppShellPanel } from './types.js';
 
-	let current = $state('fleet/overview');
+	let current = $state('fleet');
 	let panel = $state<AppShellPanel | null>(null);
 	let notifications = $state(appShellNotifications);
 	let asked = $state<string[]>([]);
 
 	const screen = $derived(
-		[...appShellData.modules.flatMap((m) => m.screens), ...appShellData.bookmarks].find(
-			(s) => s.id === current
-		)
+		[
+			...appShellData.modules,
+			...appShellData.modules.flatMap((m) => m.screens),
+			...appShellData.bookmarks
+		].find((s) => s.id === current)
 	);
 
 	const units = ['T-104', 'T-118', 'V-201', 'V-233', 'R-310', 'R-342'];

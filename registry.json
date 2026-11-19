@@ -657,7 +657,7 @@
 			"name": "app-shell",
 			"type": "registry:block",
 			"title": "App Shell",
-			"description": "An application frame on the shadcn-svelte sidebar: modules that expand inline and open as menus when the sidebar is icons only, a header with search, assistant and notification buttons and an account menu, and a right-hand panel for notifications or an assistant.",
+			"description": "An application frame on the shadcn-svelte sidebar: module rows that link to each module's page and show its screens while you are in it, instant hover menus for the others and when the sidebar is icons only, a header with search, assistant and notification buttons and an account menu, and a right-hand panel for notifications or an assistant.",
 			"categories": ["page"],
 			"dependencies": ["@lucide/svelte", "bits-ui", "mode-watcher"],
 			"devDependencies": [],
@@ -665,7 +665,6 @@
 				"avatar",
 				"badge",
 				"button",
-				"collapsible",
 				"dropdown-menu",
 				"kbd",
 				"sidebar",
@@ -696,6 +695,11 @@
 					"path": "src/lib/registry/blocks/app-shell/nav-flyout.svelte",
 					"type": "registry:component",
 					"target": "app-shell/nav-flyout.svelte"
+				},
+				{
+					"path": "src/lib/registry/blocks/app-shell/nav-row.svelte",
+					"type": "registry:component",
+					"target": "app-shell/nav-row.svelte"
 				},
 				{
 					"path": "src/lib/registry/blocks/app-shell/nav-footer.svelte",

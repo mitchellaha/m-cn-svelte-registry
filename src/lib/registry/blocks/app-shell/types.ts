@@ -10,10 +10,8 @@ export type AppShellScreen = {
 	keywords?: string[];
 };
 
-export type AppShellModule = {
-	id: string;
-	label: string;
-	icon?: Component;
+/** A top-level page, such as a module's overview, with its own screens under it. */
+export type AppShellModule = AppShellScreen & {
 	screens: AppShellScreen[];
 };
 
