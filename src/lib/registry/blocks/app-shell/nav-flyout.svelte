@@ -106,12 +106,17 @@
 		}}
 		onpointerenter={() => clearTimeout(timer)}
 		onpointerleave={hoverClose}
-		class="w-52 animate-none! transition-none data-closed:hidden"
+		class="w-52 animate-none! transition-none outline-none data-closed:hidden"
 	>
 		{#if iconMode}<DropdownMenu.Label>{module.label}</DropdownMenu.Label>{/if}
 		{#each module.screens as screen (screen.id)}
 			<DropdownMenu.Item
-				class={cn('transition-none', screen.id === current && 'font-medium')}
+				class={cn(
+					// Mira highlights items on :focus only, which does not match until the page has
+					// focus, so a hover-opened menu on a page not yet clicked showed no highlight.
+					'transition-none hover:bg-accent hover:text-accent-foreground',
+					screen.id === current && 'font-medium'
+				)}
 				onSelect={() => pick(screen)}
 			>
 				{screen.label}
