@@ -65,12 +65,12 @@
 				{:else}
 					<NavRow {module} active={highlight} {current} onNavigate={navigate} />
 					{#if inline && module.screens.length}
-						<Sidebar.MenuSub class="border-l-0">
+						<Sidebar.MenuSub class="me-0 border-l-0 pe-0">
 							{#each module.screens as screen (screen.id)}
 								<Sidebar.MenuSubItem>
 									<Sidebar.MenuSubButton
 										isActive={screen.id === current}
-										class="text-sidebar-foreground/65 data-active:font-medium"
+										class="w-full text-sidebar-foreground/65 data-active:font-medium"
 									>
 										{#snippet child({ props })}
 											<!-- Without an href it is a button, so it still takes focus. -->
